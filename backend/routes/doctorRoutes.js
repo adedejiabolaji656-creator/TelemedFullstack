@@ -1,0 +1,22 @@
+const router = require('express').Router();
+const { protect, authorize } = require('../middleware/auth');
+const upload = require('../middleware/upload');
+const {
+  getDoctors,
+  getDoctor,
+  getAvailability,
+  addAvailability,
+  deleteAvailability,
+  uploadDocuments,
+  getMyProfile,
+} = require('../controllers/doctorController');
+
+router.get('/', getDoctors);
+router.get('/me', protect, authorize('doctor'), getMyProfile);
+router.get('/:id/availability', getAvailability);
+router.get('/:id', getDoctor);
+router.post('/availability', protect, authorize('doctor'), addAvailability);
+router.delete('/availability/:id', protect, authorize('doctor'), deleteAvailability);
+router.post('/documents', protect, authorize('doctor'), upload.single('document'), uploadDocuments);
+
+module.exports = router;
