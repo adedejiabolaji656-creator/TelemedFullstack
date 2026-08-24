@@ -14,3 +14,8 @@ frontend/dist/
 *.log
 .vscode/
 .idea/
+
+# Environment files (never commit real credentials)
+.env
+.env.*
+!.env.example

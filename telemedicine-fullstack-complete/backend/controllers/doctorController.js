@@ -249,9 +249,16 @@ exports.uploadDocuments = async (req, res) => {
       });
     }
 
-    // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'doctor_documents',
+    // Upload to Cloudinary (from memory buffer; disk storage is ephemeral on serverless)
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'doctor_documents' },
+        (error, uploadResult) => {
+          if (error) return reject(error);
+          resolve(uploadResult);
+        }
+      );
+      stream.end(req.file.buffer);
     });
 
     doctor.documents.push({
