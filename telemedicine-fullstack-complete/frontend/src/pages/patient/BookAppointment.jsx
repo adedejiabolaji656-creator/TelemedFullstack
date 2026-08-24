@@ -6,7 +6,11 @@ import { format, addDays, startOfWeek } from 'date-fns';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Stripe is optional: only initialize when a publishable key is configured,
+// otherwise the payment step degrades gracefully instead of crashing.
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 const CheckoutForm = ({ clientSecret, onSuccess }) => {
   const stripe = useStripe();

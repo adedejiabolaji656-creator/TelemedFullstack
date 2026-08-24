@@ -1,6 +1,19 @@
+import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Stethoscope, LayoutDashboard, Calendar, Clock, FileText, CreditCard, Stethoscope as Stetho, FolderHeart, LogOut } from 'lucide-react';
+import {
+  HeartPulse,
+  LayoutDashboard,
+  Calendar,
+  Clock,
+  FileText,
+  CreditCard,
+  Stethoscope,
+  FolderHeart,
+  LogOut,
+  Menu,
+  X,
+} from 'lucide-react';
 
 const NAV_LINKS = {
   patient: [
@@ -15,7 +28,7 @@ const NAV_LINKS = {
     { to: '/doctor/appointments', label: 'Appointments', icon: Calendar },
     { to: '/doctor/availability', label: 'Availability', icon: Clock },
     { to: '/doctor/prescriptions', label: 'Prescriptions', icon: FileText },
-    { to: '/doctor/profile', label: 'Profile', icon: Stetho },
+    { to: '/doctor/profile', label: 'Profile', icon: Stethoscope },
   ],
   admin: [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -25,60 +38,101 @@ const NAV_LINKS = {
   ],
 };
 
+const ROLE_STYLES = {
+  patient: { avatar: 'from-brand-500 to-brand-600', ring: 'ring-brand-200' },
+  doctor: { avatar: 'from-mint-500 to-mint-600', ring: 'ring-mint-100' },
+  admin: { avatar: 'from-accent-500 to-accent-600', ring: 'ring-accent-100' },
+};
+
+const Avatar = ({ user }) => {
+  const style = ROLE_STYLES[user.role] || ROLE_STYLES.patient;
+  const initials = (user.name || '?')
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  return (
+    <span
+      className={`flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br ${style.avatar} text-[11px] font-bold text-white shadow-sm ring-2 ${style.ring}`}
+      aria-hidden="true"
+    >
+      {initials}
+    </span>
+  );
+};
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const links = user ? NAV_LINKS[user.role] || [] : [];
 
   const handleLogout = () => {
+    setMobileOpen(false);
     logout();
     navigate('/');
   };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <Stethoscope className="text-blue-600" size={28} />
-            <span className="text-xl font-bold text-gray-900">TeleMed</span>
+    <nav className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/75 backdrop-blur-xl supports-backdrop-filter:bg-white/60">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          <Link to="/" className="group flex items-center gap-2.5">
+            <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent-600 text-white shadow-glow transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
+              <HeartPulse size={20} strokeWidth={2.5} />
+            </span>
+            <span className="font-display text-xl font-extrabold tracking-tight text-slate-900">
+              Tele<span className="gradient-text">Med</span>
+            </span>
           </Link>
 
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden items-center gap-1 md:flex">
             {links.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  `flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? 'bg-brand-50 text-brand-700 ring-1 ring-brand-100'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   }`
                 }
               >
-                <link.icon size={16} className="mr-2" />
+                <link.icon size={15} />
                 {link.label}
               </NavLink>
             ))}
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="hidden items-center gap-3 md:flex">
             {user ? (
               <>
-                <span className="text-sm text-gray-600 hidden sm:block">
-                  <span className="capitalize">{user.role}</span> · {user.name}
-                </span>
+                <div className="flex items-center gap-2.5 rounded-full bg-slate-50 py-1 pl-1 pr-3.5 ring-1 ring-slate-200">
+                  <Avatar user={user} />
+                  <span className="text-sm leading-tight">
+                    <span className="block font-semibold text-slate-800">{user.name}</span>
+                    <span className="block text-[11px] font-medium capitalize text-brand-600">
+                      {user.role}
+                    </span>
+                  </span>
+                </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  title="Log out"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
                 >
-                  <LogOut size={16} className="mr-1" />
-                  Logout
+                  <LogOut size={17} />
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+                <Link
+                  to="/login"
+                  className="rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                >
                   Sign In
                 </Link>
                 <Link to="/register" className="btn-primary px-4 py-2 text-sm">
@@ -87,24 +141,62 @@ const Navbar = () => {
               </>
             )}
           </div>
+
+          {/* Mobile toggle */}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
 
-        {/* Mobile nav */}
-        {links.length > 0 && (
-          <div className="md:hidden pb-3 flex gap-1 overflow-x-auto">
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className="animate-fade-in space-y-1 border-t border-slate-100 pt-3 pb-4 md:hidden">
+            {user && (
+              <div className="mb-2 flex items-center gap-2.5 px-2">
+                <Avatar user={user} />
+                <span className="text-sm">
+                  <span className="block font-semibold text-slate-800">{user.name}</span>
+                  <span className="block text-xs capitalize text-brand-600">{user.role}</span>
+                </span>
+              </div>
+            )}
             {links.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
+                onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium ${
-                    isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
+                  `flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium ${
+                    isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100'
                   }`
                 }
               >
+                <link.icon size={16} />
                 {link.label}
               </NavLink>
             ))}
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="mt-2 flex w-full items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
+            ) : (
+              <div className="flex gap-2 pt-2">
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="btn-secondary flex-1 py-2 text-sm">
+                  Sign In
+                </Link>
+                <Link to="/register" onClick={() => setMobileOpen(false)} className="btn-primary flex-1 py-2 text-sm">
+                  Get Started
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>
