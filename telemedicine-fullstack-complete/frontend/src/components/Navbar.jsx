@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from './Logo';
 import {
-  HeartPulse,
   LayoutDashboard,
   Calendar,
   Clock,
@@ -79,15 +79,7 @@ const Navbar = () => {
     <nav className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/75 backdrop-blur-xl supports-backdrop-filter:bg-white/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="group flex items-center gap-2.5">
-            <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent-600 text-white shadow-glow transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
-              <HeartPulse size={20} strokeWidth={2.5} />
-            </span>
-            <span className="font-display text-xl font-extrabold tracking-tight text-slate-900">
-              Tele<span className="gradient-text">Med</span>
-            </span>
-          </Link>
-
+          <Logo to="/" size={34} wordmarkClassName="text-lg" />
           <div className="hidden items-center gap-1 md:flex">
             {links.map((link) => (
               <NavLink

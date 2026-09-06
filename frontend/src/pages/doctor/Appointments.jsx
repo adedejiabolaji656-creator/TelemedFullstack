@@ -2,10 +2,27 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import {
-  Calendar, Clock, Video, MessageSquare, CheckCircle, XCircle,
-  User, Filter, ChevronRight
+  Calendar,
+  Clock,
+  Video,
+  MessageSquare,
+  CheckCircle,
+  XCircle,
+  ChevronRight,
+  ClipboardPlus,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import PageHeader, { Avatar } from '../../components/PageHeader';
+import { Spinner } from '../../components/Spinner';
+import StatusBadge from '../../components/StatusBadge';
+
+const FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'cancelled', label: 'Cancelled' },
+];
 
 const DoctorAppointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -49,120 +66,133 @@ const DoctorAppointments = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-700',
-      confirmed: 'bg-green-100 text-green-700',
-      completed: 'bg-blue-100 text-blue-700',
-      cancelled: 'bg-red-100 text-red-700',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-700';
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const pendingCount = appointments.filter((a) => a.status === 'pending').length;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-6">Manage Appointments</h1>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageHeader
+        title="Manage appointments"
+        subtitle="Confirm bookings, start video visits, and write prescriptions."
+        icon={Calendar}
+        actions={
+          pendingCount > 0 ? (
+            <span className="badge bg-amber-50 text-amber-600 ring-1 ring-amber-100">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+              {pendingCount} pending
+            </span>
+          ) : (
+            <span className="badge bg-mint-50 text-mint-600 ring-1 ring-mint-100">
+              Schedule up to date
+            </span>
+          )
+        }
+      />
 
-      <div className="flex items-center space-x-2 mb-6">
-        <Filter size={18} className="text-gray-400" />
-        <select
-          className="input w-40"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="all">All</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
+      {/* Filter tabs */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {FILTERS.map((f) => {
+          const active = filter === f.key;
+          return (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                active
+                  ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25'
+                  : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700'
+              }`}
+            >
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
-      {appointments.length === 0 ? (
-        <div className="card text-center py-12">
-          <Calendar className="mx-auto text-gray-300 mb-4" size={48} />
-          <p className="text-gray-500 text-lg">No appointments found</p>
+      {loading ? (
+        <Spinner label="Loading appointments..." />
+      ) : appointments.length === 0 ? (
+        <div className="card mx-auto max-w-lg py-16 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 ring-1 ring-slate-100">
+            <Calendar size={30} />
+          </div>
+          <p className="font-display text-lg font-bold text-slate-800">No {filter === 'all' ? '' : `${filter} `}appointments</p>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-slate-500">
+            Bookings in this category will show up here automatically.
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
           {appointments.map((apt) => (
-            <div key={apt._id} className="card">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User size={20} className="text-blue-600" />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(apt.status)}`}>
-                        {apt.status}
-                      </span>
-                      <span className="text-xs text-gray-400 capitalize flex items-center">
-                        {apt.type === 'video' ? <Video size={12} className="mr-1" /> : <MessageSquare size={12} className="mr-1" />}
-                        {apt.type}
+            <div
+              key={apt._id}
+              className="card p-5 transition-all duration-200 hover:shadow-lift"
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-4">
+                  <Avatar name={apt.patient?.user?.name} className="h-12 w-12 text-sm" />
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate font-display font-bold text-slate-900">
+                        {apt.patient?.user?.name}
+                      </p>
+                      <StatusBadge status={apt.status} />
+                      <span className="flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold capitalize text-brand-700">
+                        {apt.type === 'video' ? <Video size={11} /> : <MessageSquare size={11} />}
+                        {apt.type} visit
                       </span>
                     </div>
-                    <p className="font-medium">{apt.patient?.user?.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {format(new Date(apt.scheduledDate), 'MMM d, yyyy')} at {apt.startTime}
+                    <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
+                      <Clock size={13} className="text-slate-400" />
+                      {format(new Date(apt.scheduledDate), 'EEEE, MMM d, yyyy')} · {apt.startTime}
                     </p>
                     {apt.symptoms && (
-                      <p className="text-sm text-gray-400 mt-1 line-clamp-1">{apt.symptoms}</p>
+                      <p className="mt-1 line-clamp-1 text-xs text-slate-400">"{apt.symptoms}"</p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                   {apt.status === 'pending' && (
                     <>
                       <button
                         onClick={() => handleConfirm(apt._id)}
-                        className="flex items-center space-x-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm"
+                        className="btn-primary px-4 py-2 text-xs"
                       >
-                        <CheckCircle size={16} />
-                        <span>Confirm</span>
+                        <CheckCircle size={14} />
+                        Confirm
                       </button>
                       <button
                         onClick={() => handleCancel(apt._id)}
-                        className="flex items-center space-x-1 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm"
+                        className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-red-600 ring-1 ring-red-100 transition-all hover:bg-red-50"
                       >
-                        <XCircle size={16} />
-                        <span>Decline</span>
+                        <XCircle size={14} />
+                        Decline
                       </button>
                     </>
                   )}
 
                   {apt.status === 'confirmed' && (
                     <>
-                      <Link
-                        to={`/video/${apt.roomId}`}
-                        className="flex items-center space-x-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
-                      >
-                        <Video size={16} />
-                        <span>Join</span>
+                      <Link to={`/video/${apt.roomId}`} className="btn-primary px-4 py-2 text-xs">
+                        <Video size={14} />
+                        Join visit
                       </Link>
                       <Link
                         to={`/doctor/prescriptions/create/${apt._id}`}
-                        className="flex items-center space-x-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-accent-50 px-4 py-2 text-xs font-semibold text-accent-600 ring-1 ring-accent-100 transition-all hover:bg-accent-100"
                       >
-                        <span>Prescribe</span>
+                        <ClipboardPlus size={14} />
+                        Prescribe
                       </Link>
                     </>
                   )}
 
                   <Link
                     to={`/appointments/${apt._id}`}
-                    className="p-2 text-gray-400 hover:text-gray-600"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                    aria-label="View details"
                   >
-                    <ChevronRight size={20} />
+                    <ChevronRight size={18} />
                   </Link>
                 </div>
               </div>

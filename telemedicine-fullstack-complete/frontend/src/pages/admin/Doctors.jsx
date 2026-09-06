@@ -2,9 +2,19 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
   Stethoscope, CheckCircle, XCircle, Eye, FileText,
-  Mail, Phone, Award, Filter
+  Mail, Award, BadgeCheck
 } from 'lucide-react';
 import { format } from 'date-fns';
+import PageHeader, { Avatar } from '../../components/PageHeader';
+import { Spinner } from '../../components/Spinner';
+import StatusBadge from '../../components/StatusBadge';
+
+const TABS = [
+  { key: 'pending', label: 'Pending' },
+  { key: 'under_review', label: 'Under review' },
+  { key: 'verified', label: 'Verified' },
+  { key: 'rejected', label: 'Rejected' },
+];
 
 const AdminDoctors = () => {
   const [doctors, setDoctors] = useState([]);
@@ -39,140 +49,141 @@ const AdminDoctors = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-700',
-      under_review: 'bg-blue-100 text-blue-700',
-      verified: 'bg-green-100 text-green-700',
-      rejected: 'bg-red-100 text-red-700',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-700';
-  };
-
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Spinner label="Loading doctor applications..." />;
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-6">Doctor Verifications</h1>
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageHeader
+        title="Doctor verifications"
+        subtitle="Review licenses, documents, and approve new specialists."
+        icon={BadgeCheck}
+      />
 
-      <div className="flex items-center space-x-2 mb-6">
-        <Filter size={18} className="text-gray-400" />
-        <select
-          className="input w-48"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="pending">Pending</option>
-          <option value="under_review">Under Review</option>
-          <option value="verified">Verified</option>
-          <option value="rejected">Rejected</option>
-        </select>
+      {/* Filter tabs */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {TABS.map((t) => {
+          const active = filter === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setFilter(t.key)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                active
+                  ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25'
+                  : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {doctors.length === 0 ? (
-        <div className="card text-center py-12">
-          <Stethoscope className="mx-auto text-gray-300 mb-4" size={48} />
-          <p className="text-gray-500 text-lg">No doctors found</p>
+        <div className="card mx-auto max-w-lg py-16 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 ring-1 ring-slate-100">
+            <Stethoscope size={30} />
+          </div>
+          <p className="font-display text-lg font-bold text-slate-800">No doctors found</p>
+          <p className="mt-2 text-sm text-slate-500">Applications in this category will show here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid gap-6 lg:grid-cols-2">
           {doctors.map((doctor) => (
-            <div key={doctor._id} className="card">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-lg font-bold text-blue-600">
-                      {doctor.user?.name?.charAt(0)}
-                    </span>
+            <div key={doctor._id} className="card overflow-hidden p-0">
+              <div className="h-14 bg-gradient-to-br from-teal-500 via-cyan-600 to-sky-700" />
+              <div className="p-5">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3.5">
+                    <Avatar name={doctor.user?.name} className="h-12 w-12 text-sm ring-4 ring-white -mt-8" />
+                    <div>
+                      <h3 className="font-display font-bold text-slate-900">{doctor.user?.name}</h3>
+                      <p className="text-sm font-semibold text-teal-600">{doctor.specialization}</p>
+                      <div className="mt-1.5">
+                        <StatusBadge status={doctor.verificationStatus} />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold">{doctor.user?.name}</h3>
-                    <p className="text-sm text-gray-500">{doctor.specialization}</p>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getStatusColor(doctor.verificationStatus)}`}>
-                      {doctor.verificationStatus}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedDoctor(selectedDoctor?._id === doctor._id ? null : doctor)}
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  <Eye size={18} />
-                </button>
-              </div>
-
-              <div className="space-y-2 text-sm text-gray-600 mb-4">
-                <p className="flex items-center">
-                  <Mail size={14} className="mr-2 text-gray-400" />
-                  {doctor.user?.email}
-                </p>
-                <p className="flex items-center">
-                  <Award size={14} className="mr-2 text-gray-400" />
-                  License: {doctor.licenseNumber}
-                </p>
-                <p className="flex items-center">
-                  <Stethoscope size={14} className="mr-2 text-gray-400" />
-                  {doctor.yearsExperience} years experience
-                </p>
-                <p className="flex items-center">
-                  <FileText size={14} className="mr-2 text-gray-400" />
-                  Fee: ${doctor.consultationFee}
-                </p>
-                <p className="text-xs text-gray-400">
-                  Registered: {format(new Date(doctor.user?.createdAt), 'MMM d, yyyy')}
-                </p>
-              </div>
-
-              {doctor.documents?.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Documents</p>
-                  <div className="flex flex-wrap gap-2">
-                    {doctor.documents.map((doc, idx) => (
-                      <a
-                        key={idx}
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs hover:bg-gray-200 transition-colors"
-                      >
-                        {doc.type.replace('_', ' ')}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {doctor.verificationStatus !== 'verified' && doctor.verificationStatus !== 'rejected' && (
-                <div className="flex space-x-2 pt-4 border-t">
                   <button
-                    onClick={() => handleVerify(doctor._id, 'verified')}
-                    className="flex-1 flex items-center justify-center space-x-1 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                    onClick={() => setSelectedDoctor(selectedDoctor?._id === doctor._id ? null : doctor)}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                    aria-label="Preview details"
                   >
-                    <CheckCircle size={16} />
-                    <span>Verify</span>
-                  </button>
-                  <button
-                    onClick={() => handleVerify(doctor._id, 'rejected')}
-                    className="flex-1 flex items-center justify-center space-x-1 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                  >
-                    <XCircle size={16} />
-                    <span>Reject</span>
+                    <Eye size={17} />
                   </button>
                 </div>
-              )}
 
-              {doctor.rejectionReason && (
-                <div className="mt-3 p-3 bg-red-50 rounded-lg text-sm text-red-700">
-                  <p className="font-medium">Rejection Reason:</p>
-                  {doctor.rejectionReason}
+                <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
+                  <p className="flex items-center gap-2 truncate">
+                    <Mail size={13} className="shrink-0 text-slate-400" />
+                    <span className="truncate">{doctor.user?.email}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Award size={13} className="shrink-0 text-slate-400" />
+                    License: {doctor.licenseNumber}
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Stethoscope size={13} className="shrink-0 text-slate-400" />
+                    {doctor.yearsExperience} yrs experience
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <FileText size={13} className="shrink-0 text-slate-400" />
+                    Fee: ${doctor.consultationFee}
+                  </p>
+                  <p className="flex items-center gap-2 text-xs text-slate-400">
+                    Registered {format(new Date(doctor.user?.createdAt), 'MMM d, yyyy')}
+                  </p>
                 </div>
-              )}
+
+                {doctor.documents?.length > 0 && (
+                  <div className="mt-4">
+                    <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
+                      Documents
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {doctor.documents.map((doc, idx) => (
+                        <a
+                          key={idx}
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-brand-50 hover:text-brand-700"
+                        >
+                          {doc.type.replace('_', ' ')}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {doctor.verificationStatus !== 'verified' && doctor.verificationStatus !== 'rejected' && (
+                  <div className="mt-5 flex gap-3 border-t border-slate-100 pt-4">
+                    <button
+                      onClick={() => handleVerify(doctor._id, 'verified')}
+                      className="btn-primary flex-1 py-2 text-xs"
+                    >
+                      <CheckCircle size={14} />
+                      Verify
+                    </button>
+                    <button
+                      onClick={() => handleVerify(doctor._id, 'rejected')}
+                      className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-red-600 ring-1 ring-red-100 transition-all hover:bg-red-50"
+                    >
+                      <XCircle size={14} />
+                      Reject
+                    </button>
+                  </div>
+                )}
+
+                {doctor.rejectionReason && (
+                  <div className="mt-3 rounded-xl border border-red-100 bg-red-50 p-3.5 text-sm text-red-700">
+                    <p className="mb-0.5 font-bold">Rejection reason</p>
+                    {doctor.rejectionReason}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

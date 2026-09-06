@@ -3,6 +3,7 @@ const { protect, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const {
   getDoctors,
+  getSpecializations,
   getDoctor,
   getAvailability,
   addAvailability,
@@ -12,6 +13,7 @@ const {
 } = require('../controllers/doctorController');
 
 router.get('/', getDoctors);
+router.get('/specializations', getSpecializations);
 router.get('/me', protect, authorize('doctor'), getMyProfile);
 router.get('/:id/availability', getAvailability);
 router.get('/:id', getDoctor);

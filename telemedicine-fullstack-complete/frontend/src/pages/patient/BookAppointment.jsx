@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar, Clock, Video, MessageSquare, CreditCard, ChevronLeft } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  Video,
+  MessageSquare,
+  CreditCard,
+  ChevronLeft,
+  Stethoscope,
+  ShieldCheck,
+} from 'lucide-react';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Spinner } from '../../components/Spinner';
 
-// Stripe is optional: only initialize when a publishable key is configured,
-// otherwise the payment step degrades gracefully instead of crashing.
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
   : null;
@@ -39,16 +47,45 @@ const CheckoutForm = ({ clientSecret, onSuccess }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <PaymentElement />
-      <button
-        type="submit"
-        disabled={!stripe || loading}
-        className="w-full btn-primary py-3 disabled:opacity-50"
-      >
-        {loading ? 'Processing...' : 'Pay & Confirm'}
+      <button type="submit" disabled={!stripe || loading} className="btn-primary w-full py-3">
+        {loading ? 'Processing payment...' : 'Pay & Confirm'}
       </button>
     </form>
   );
 };
+
+const Stepper = ({ step }) => (
+  <div className="mb-6 flex items-center gap-2">
+    {['Details', 'Payment'].map((label, i) => {
+      const num = i + 1;
+      const active = step === num;
+      const done = step > num;
+      return (
+        <div key={label} className="flex flex-1 items-center gap-2">
+          <span
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all ${
+              done
+                ? 'bg-mint-500 text-white'
+                : active
+                ? 'bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25'
+                : 'bg-slate-100 text-slate-400'
+            }`}
+          >
+            {done ? '✓' : num}
+          </span>
+          <span
+            className={`hidden text-sm font-semibold sm:block ${
+              active ? 'text-slate-800' : 'text-slate-400'
+            }`}
+          >
+            {label}
+          </span>
+          {num === 1 && <span className="h-px flex-1 bg-slate-200 last:hidden" />}
+        </div>
+      );
+    })}
+  </div>
+);
 
 const BookAppointment = () => {
   const { doctorId } = useParams();
@@ -97,7 +134,6 @@ const BookAppointment = () => {
         symptoms,
       });
 
-      // Create payment intent
       const paymentRes = await axios.post('/api/payments/create-intent', {
         appointmentId: res.data.appointment._id,
       });
@@ -117,70 +153,94 @@ const BookAppointment = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Spinner label="Preparing your booking..." />;
   }
 
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const weekStart = startOfWeek(new Date());
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+      <Link
+        to={`/patient/doctors/${doctorId}`}
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-teal-600"
       >
-        <ChevronLeft size={20} />
-        Back
-      </button>
+        <ChevronLeft size={15} />
+        Back to Dr. {doctor?.user?.name}
+      </Link>
 
-      <h1 className="text-3xl font-bold mb-2">Book Appointment</h1>
-      <p className="text-gray-500 mb-8">
-        with Dr. {doctor?.user?.name} — {doctor?.specialization}
-      </p>
+      <Stepper step={step} />
 
       {step === 1 ? (
         <div className="space-y-6">
+          {/* Doctor summary */}
+          <div className="card flex items-center gap-4 p-5">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-700 text-white shadow-md">
+              <Stethoscope size={24} />
+            </span>
+            <div>
+              <p className="font-display text-lg font-bold text-slate-900">
+                Dr. {doctor?.user?.name}
+              </p>
+              <p className="text-sm font-medium text-teal-600">{doctor?.specialization}</p>
+              <p className="mt-0.5 text-xs text-slate-400">
+                ${doctor?.consultationFee} per visit · {doctor?.rating || 'New'} rating
+              </p>
+            </div>
+          </div>
+
           {/* Appointment Type */}
-          <div className="card">
-            <h3 className="font-semibold mb-3">Consultation Type</h3>
+          <div className="card p-6">
+            <h3 className="mb-4 font-display text-lg font-bold text-slate-900">
+              Consultation type
+            </h3>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { type: 'video', label: 'Video Call', icon: Video },
-                { type: 'chat', label: 'Text Chat', icon: MessageSquare },
+                { type: 'video', label: 'Video Call', desc: 'Face-to-face', icon: Video },
+                { type: 'chat', label: 'Text Chat', desc: 'Asynchronous', icon: MessageSquare },
               ].map((opt) => (
                 <button
                   key={opt.type}
                   onClick={() => setAppointmentType(opt.type)}
-                  className={`p-4 rounded-lg border-2 text-center transition-colors ${
+                  className={`group rounded-2xl border-2 p-4 text-center transition-all duration-200 ${
                     appointmentType === opt.type
-                      ? 'border-blue-600 bg-blue-50 text-blue-600'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-teal-500 bg-teal-50 shadow-glow'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
                   }`}
                 >
-                  <opt.icon className="mx-auto mb-2" size={24} />
-                  <span className="font-medium">{opt.label}</span>
+                  <opt.icon
+                    className={`mx-auto mb-2 ${appointmentType === opt.type ? 'text-teal-600' : 'text-slate-400'}`}
+                    size={24}
+                  />
+                  <span
+                    className={`block text-sm font-bold ${
+                      appointmentType === opt.type ? 'text-teal-700' : 'text-slate-600'
+                    }`}
+                  >
+                    {opt.label}
+                  </span>
+                  <span className="text-xs text-slate-400">{opt.desc}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Select Date & Time */}
-          <div className="card">
-            <h3 className="font-semibold mb-3 flex items-center">
-              <Calendar className="mr-2" size={18} />
-              Select Date & Time
+          <div className="card p-6">
+            <h3 className="mb-4 flex items-center gap-2 font-display text-lg font-bold text-slate-900">
+              <Calendar size={18} className="text-teal-600" />
+              Select date & time
             </h3>
 
-            <div className="grid grid-cols-7 gap-2 mb-4">
+            <div className="mb-5 grid grid-cols-7 gap-2">
               {[...Array(7)].map((_, i) => {
                 const date = addDays(weekStart, i);
                 const dateStr = format(date, 'yyyy-MM-dd');
                 const daySlots = slots.filter(
-                  (s) => s.dayOfWeek === i && (!s.specificDate || format(new Date(s.specificDate), 'yyyy-MM-dd') === dateStr)
+                  (s) =>
+                    s.dayOfWeek === i &&
+                    (!s.specificDate ||
+                      format(new Date(s.specificDate), 'yyyy-MM-dd') === dateStr)
                 );
                 const hasSlots = daySlots.length > 0;
 
@@ -189,86 +249,115 @@ const BookAppointment = () => {
                     key={i}
                     onClick={() => hasSlots && setSelectedDate(dateStr)}
                     disabled={!hasSlots}
-                    className={`p-2 rounded-lg text-center text-sm transition-colors ${
+                    className={`rounded-xl p-2 text-center text-sm transition-all duration-200 ${
                       selectedDate === dateStr
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25'
                         : hasSlots
-                        ? 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                        : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                        ? 'bg-slate-50 text-slate-700 ring-1 ring-slate-200 hover:bg-teal-50 hover:text-teal-700 hover:ring-teal-200'
+                        : 'cursor-not-allowed bg-slate-100 text-slate-300'
                     }`}
                   >
-                    <div className="text-xs">{days[i]}</div>
-                    <div className="font-semibold">{format(date, 'd')}</div>
+                    <div className="text-[10px] font-semibold uppercase">{days[i]}</div>
+                    <div className="mt-0.5 font-bold">{format(date, 'd')}</div>
                   </button>
                 );
               })}
             </div>
 
-            {selectedDate && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            {selectedDate ? (
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {slots
                   .filter(
                     (s) =>
                       format(addDays(weekStart, s.dayOfWeek), 'yyyy-MM-dd') === selectedDate ||
-                      (s.specificDate && format(new Date(s.specificDate), 'yyyy-MM-dd') === selectedDate)
+                      (s.specificDate &&
+                        format(new Date(s.specificDate), 'yyyy-MM-dd') === selectedDate)
                   )
                   .map((slot) => (
                     <button
                       key={slot._id}
                       onClick={() => setSelectedSlot(slot)}
-                      className={`p-2 rounded-lg text-sm text-center transition-colors ${
+                      className={`rounded-xl p-2.5 text-center text-sm font-semibold transition-all duration-200 ${
                         selectedSlot?._id === slot._id
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-50 hover:bg-blue-50 text-gray-700 border border-gray-200'
+                          ? 'bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25'
+                          : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-teal-50 hover:text-teal-700 hover:ring-teal-300'
                       }`}
                     >
-                      <Clock size={14} className="mx-auto mb-1" />
+                      <Clock size={13} className="mx-auto mb-1 opacity-70" />
                       {slot.startTime}
                     </button>
                   ))}
               </div>
+            ) : (
+              <p className="rounded-xl bg-slate-50 p-4 text-center text-sm text-slate-400">
+                Pick an available day to see open slots.
+              </p>
             )}
           </div>
 
           {/* Symptoms */}
-          <div className="card">
-            <h3 className="font-semibold mb-3">Symptoms / Reason for Visit</h3>
+          <div className="card p-6">
+            <h3 className="mb-4 font-display text-lg font-bold text-slate-900">
+              Symptoms / reason for visit
+            </h3>
             <textarea
-              className="input w-full h-32 resize-none"
-              placeholder="Describe your symptoms or reason for consultation..."
+              className="input h-28 resize-none"
+              placeholder="Describe your symptoms so your doctor can prepare..."
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
             />
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-slate-400">
+              <ShieldCheck size={13} className="text-mint-500" />
+              Shared securely with your doctor only.
+            </p>
           </div>
 
           {/* Fee Summary */}
-          <div className="card bg-gray-50">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm text-gray-500">Consultation Fee</p>
-                <p className="text-2xl font-bold">${doctor?.consultationFee}</p>
-              </div>
-              <button
-                onClick={handleBook}
-                disabled={!selectedSlot || booking}
-                className="btn-primary px-8 py-3 disabled:opacity-50"
-              >
-                {booking ? 'Processing...' : 'Continue to Payment'}
-              </button>
+          <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Consultation fee</p>
+              <p className="font-display text-2xl font-extrabold text-slate-900">
+                ${doctor?.consultationFee}
+              </p>
             </div>
+            <button
+              onClick={handleBook}
+              disabled={!selectedSlot || booking}
+              className="btn-primary px-8 py-3"
+            >
+              {booking ? (
+                'Processing...'
+              ) : (
+                <>
+                  Continue to payment
+                  <CreditCard size={16} />
+                </>
+              )}
+            </button>
           </div>
         </div>
       ) : (
-        <div className="card">
-          <h3 className="font-semibold mb-4 flex items-center">
-            <CreditCard className="mr-2" size={20} />
-            Complete Payment
+        <div className="card p-6">
+          <h3 className="mb-1 flex items-center gap-2 font-display text-lg font-bold text-slate-900">
+            <CreditCard size={18} className="text-teal-600" />
+            Complete payment
           </h3>
-          <p className="text-gray-500 mb-4">Amount: ${doctor?.consultationFee}</p>
-          {clientSecret && (
+          <p className="mb-5 text-sm text-slate-500">
+            Pay ${doctor?.consultationFee} securely to confirm your video visit with{' '}
+            <span className="font-semibold text-slate-700">Dr. {doctor?.user?.name}</span> on{' '}
+            {selectedDate
+              ? format(new Date(selectedDate), 'EEEE, MMM d')
+              : 'your chosen date'}{' '}
+            at {selectedSlot?.startTime}.
+          </p>
+          {clientSecret ? (
             <Elements stripe={stripePromise} options={{ clientSecret }}>
               <CheckoutForm clientSecret={clientSecret} onSuccess={handlePaymentSuccess} />
             </Elements>
+          ) : (
+            <p className="text-sm text-amber-600">
+              Payment wasn't initialized. Please go back and try again.
+            </p>
           )}
         </div>
       )}

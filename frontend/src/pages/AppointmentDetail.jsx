@@ -3,10 +3,49 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import {
-  Calendar, Clock, Video, MessageSquare, FileText, CreditCard,
-  ChevronLeft, Phone, Mail, AlertCircle, CheckCircle, XCircle
+  Calendar,
+  Clock,
+  Video,
+  MessageSquare,
+  FileText,
+  CreditCard,
+  ChevronLeft,
+  Phone,
+  Mail,
+  CheckCircle,
+  XCircle,
+  ClipboardPlus,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { Spinner } from '../components/Spinner';
+import StatusBadge from '../components/StatusBadge';
+import { Avatar } from '../components/PageHeader';
+
+const DetailRow = ({ icon: Icon, label, value }) => (
+  <div className="flex items-center gap-3">
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 ring-1 ring-slate-100">
+      <Icon size={16} />
+    </span>
+    <div>
+      <p className="text-xs font-medium text-slate-400">{label}</p>
+      <p className="font-semibold text-slate-700">{value}</p>
+    </div>
+  </div>
+);
+
+const ActionButton = ({ icon: Icon, title, desc, tint, onClick, disabled }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled}
+    className={`group flex flex-col items-center rounded-2xl border p-5 text-center transition-all duration-200 hover:-translate-y-0.5 ${
+      disabled ? 'cursor-not-allowed opacity-50' : ''
+    } ${tint}`}
+  >
+    <Icon size={26} className="mb-2" />
+    <p className="font-semibold">{title}</p>
+    <p className="text-xs opacity-75">{desc}</p>
+  </button>
+);
 
 const AppointmentDetail = () => {
   const { id } = useParams();
@@ -56,17 +95,17 @@ const AppointmentDetail = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Spinner label="Loading appointment..." />;
   }
 
   if (!appointment) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-12 text-center">
-        <p className="text-gray-500 text-lg">Appointment not found</p>
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <p className="font-display text-lg font-bold text-slate-700">Appointment not found</p>
+        <button onClick={() => navigate(-1)} className="btn-secondary mt-4">
+          <ChevronLeft size={15} />
+          Go back
+        </button>
       </div>
     );
   }
@@ -77,178 +116,184 @@ const AppointmentDetail = () => {
   const canChat = appointment.status === 'confirmed';
   const canPrescribe = appointment.status === 'confirmed' && user?.role === 'doctor';
   const canComplete = appointment.status === 'confirmed' && user?.role === 'doctor';
+  const partyName = otherParty?.user?.name;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-teal-600"
       >
-        <ChevronLeft size={20} />
-        Back to Appointments
+        <ChevronLeft size={15} />
+        Back to appointments
       </button>
 
-      <div className="card mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="flex items-center space-x-2 mb-2">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
-                appointment.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                appointment.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                appointment.status === 'completed' ? 'bg-blue-100 text-blue-700' :
-                'bg-red-100 text-red-700'
-              }`}>
-                {appointment.status}
-              </span>
-              <span className="text-sm text-gray-400 capitalize flex items-center">
-                {appointment.type === 'video' ? <Video size={14} className="mr-1" /> : <MessageSquare size={14} className="mr-1" />}
-                {appointment.type}
-              </span>
-            </div>
-            <h1 className="text-2xl font-bold">
-              Appointment with {isPatient ? 'Dr.' : ''} {otherParty?.user?.name}
-            </h1>
-          </div>
+      {/* Header card */}
+      <div className="card overflow-hidden p-0">
+        <div className="h-24 bg-gradient-to-br from-teal-500 via-cyan-600 to-sky-700">
+          <div className="h-full w-full opacity-20 [background-image:radial-gradient(rgba(255,255,255,.8)_1px,transparent_1px)] [background-size:16px_16px]" />
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="flex items-center space-x-3">
-            <Calendar className="text-gray-400" size={20} />
-            <div>
-              <p className="text-sm text-gray-500">Date</p>
-              <p className="font-medium">{format(new Date(appointment.scheduledDate), 'EEEE, MMMM d, yyyy')}</p>
+        <div className="px-6 pb-6">
+          <div className="-mt-9 flex items-end justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Avatar name={partyName} className="h-16 w-16 ring-4 ring-white text-sm" />
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="font-display text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">
+                  {isPatient ? `Dr. ${partyName}` : partyName}
+                </h1>
+                  <StatusBadge status={appointment.status} />
+                </div>
+                <p className="mt-0.5 text-sm font-medium capitalize text-teal-600">
+                  {appointment.type === 'video' ? 'Video consultation' : 'Text consultation'} ·{' '}
+                  {appointment.doctor?.specialization || 'General Practice'}
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Clock className="text-gray-400" size={20} />
-            <div>
-              <p className="text-sm text-gray-500">Time</p>
-              <p className="font-medium">{appointment.startTime} - {appointment.endTime}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Info */}
-        <div className="border-t pt-4 mb-4">
-          <h3 className="font-semibold mb-2">Contact Information</h3>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <span className="flex items-center text-gray-600">
-              <Mail size={14} className="mr-1" />
-              {otherParty?.user?.email}
-            </span>
-            {otherParty?.user?.phone && (
-              <span className="flex items-center text-gray-600">
-                <Phone size={14} className="mr-1" />
-                {otherParty.user.phone}
-              </span>
+            {isPatient && (
+              <Link
+                to={appointment.type === 'video' ? `/video/${appointment.roomId}` : `/chat/${appointment.roomId}`}
+                className="hidden sm:inline-flex btn-primary"
+              >
+                {appointment.type === 'video' ? <Video size={15} /> : <MessageSquare size={15} />}
+                {appointment.type === 'video' ? 'Join now' : 'Open chat'}
+              </Link>
             )}
           </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <DetailRow
+              icon={Calendar}
+              label="Date"
+              value={format(new Date(appointment.scheduledDate), 'EEEE, MMMM d, yyyy')}
+            />
+            <DetailRow
+              icon={Clock}
+              label="Time"
+              value={`${appointment.startTime} – ${appointment.endTime}`}
+            />
+          </div>
+
+          <div className="mt-5 grid gap-4 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100 sm:grid-cols-2">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <Mail size={14} className="shrink-0 text-slate-400" />
+              <span className="truncate">{otherParty?.user?.email}</span>
+            </div>
+            {otherParty?.user?.phone && (
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <Phone size={14} className="shrink-0 text-slate-400" />
+                {otherParty.user.phone}
+              </div>
+            )}
+          </div>
+
+          {appointment.symptoms && (
+            <div className="mt-5">
+              <p className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-slate-400">
+                <FileText size={12} />
+                Symptoms / reason for visit
+              </p>
+              <p className="text-sm leading-relaxed text-slate-600">{appointment.symptoms}</p>
+            </div>
+          )}
+          {appointment.notes && (
+            <div className="mt-5 rounded-xl border border-amber-100 bg-amber-50/70 p-4">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-amber-700">Notes</p>
+              <p className="text-sm leading-relaxed text-slate-600">{appointment.notes}</p>
+            </div>
+          )}
         </div>
-
-        {/* Symptoms */}
-        {appointment.symptoms && (
-          <div className="border-t pt-4 mb-4">
-            <h3 className="font-semibold mb-2">Symptoms / Reason</h3>
-            <p className="text-gray-600 text-sm">{appointment.symptoms}</p>
-          </div>
-        )}
-
-        {/* Notes */}
-        {appointment.notes && (
-          <div className="border-t pt-4 mb-4">
-            <h3 className="font-semibold mb-2">Notes</h3>
-            <p className="text-gray-600 text-sm">{appointment.notes}</p>
-          </div>
-        )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Actions */}
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {canJoin && (
           <Link
             to={`/video/${appointment.roomId}`}
-            className="card bg-blue-50 border-blue-200 hover:bg-blue-100 transition-colors text-center"
+            className="card group flex flex-col items-center p-5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift"
           >
-            <Video className="mx-auto text-blue-600 mb-2" size={32} />
-            <h3 className="font-semibold text-blue-900">Join Video Call</h3>
-            <p className="text-sm text-blue-700">Start your consultation</p>
+            <span className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-500 text-white shadow-md">
+              <Video size={22} />
+            </span>
+            <p className="font-display font-bold text-slate-900">Join video call</p>
+            <p className="text-sm text-slate-400">Start your consultation</p>
           </Link>
         )}
 
         {canChat && (
           <Link
             to={`/chat/${appointment.roomId}`}
-            className="card bg-green-50 border-green-200 hover:bg-green-100 transition-colors text-center"
+            className="card group flex flex-col items-center p-5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift"
           >
-            <MessageSquare className="mx-auto text-green-600 mb-2" size={32} />
-            <h3 className="font-semibold text-green-900">Open Chat</h3>
-            <p className="text-sm text-green-700">Message during consultation</p>
+            <span className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-md">
+              <MessageSquare size={22} />
+            </span>
+            <p className="font-display font-bold text-slate-900">Open chat</p>
+            <p className="text-sm text-slate-400">Message during consultation</p>
           </Link>
         )}
 
         {canPrescribe && (
           <Link
             to={`/doctor/prescriptions/create/${appointment._id}`}
-            className="card bg-purple-50 border-purple-200 hover:bg-purple-100 transition-colors text-center"
+            className="card group flex flex-col items-center p-5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift"
           >
-            <FileText className="mx-auto text-purple-600 mb-2" size={32} />
-            <h3 className="font-semibold text-purple-900">Write Prescription</h3>
-            <p className="text-sm text-purple-700">Issue medication</p>
+            <span className="mb-2.5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-md">
+              <ClipboardPlus size={22} />
+            </span>
+            <p className="font-display font-bold text-slate-900">Write prescription</p>
+            <p className="text-sm text-slate-400">Issue medication</p>
           </Link>
         )}
 
         {canComplete && (
-          <button
+          <ActionButton
+            icon={CheckCircle}
+            title="Mark complete"
+            desc="End this consultation"
+            tint="bg-gradient-to-br from-mint-50 to-teal-50 text-mint-700 ring-1 ring-mint-100 border-transparent"
             onClick={() => handleStatusUpdate('completed')}
             disabled={updating}
-            className="card bg-green-50 border-green-200 hover:bg-green-100 transition-colors text-center"
-          >
-            <CheckCircle className="mx-auto text-green-600 mb-2" size={32} />
-            <h3 className="font-semibold text-green-900">Mark Complete</h3>
-            <p className="text-sm text-green-700">End this consultation</p>
-          </button>
+          />
         )}
 
         {appointment.status === 'pending' && user?.role === 'doctor' && (
-          <button
+          <ActionButton
+            icon={CheckCircle}
+            title="Confirm"
+            desc="Accept this appointment"
+            tint="bg-gradient-to-br from-mint-50 to-teal-50 text-mint-700 ring-1 ring-mint-100 border-transparent"
             onClick={() => handleStatusUpdate('confirmed')}
             disabled={updating}
-            className="card bg-green-50 border-green-200 hover:bg-green-100 transition-colors text-center"
-          >
-            <CheckCircle className="mx-auto text-green-600 mb-2" size={32} />
-            <h3 className="font-semibold text-green-900">Confirm</h3>
-            <p className="text-sm text-green-700">Accept this appointment</p>
-          </button>
+          />
         )}
 
         {(appointment.status === 'pending' || appointment.status === 'confirmed') && (
-          <button
+          <ActionButton
+            icon={XCircle}
+            title="Cancel"
+            desc="Cancel this appointment"
+            tint="bg-gradient-to-br from-red-50 to-rose-50 text-red-600 ring-1 ring-red-100 border-transparent"
             onClick={handleCancel}
-            className="card bg-red-50 border-red-200 hover:bg-red-100 transition-colors text-center"
-          >
-            <XCircle className="mx-auto text-red-600 mb-2" size={32} />
-            <h3 className="font-semibold text-red-900">Cancel</h3>
-            <p className="text-sm text-red-700">Cancel this appointment</p>
-          </button>
+            disabled={updating}
+          />
         )}
 
         {appointment.payment && (
-          <div className="card bg-gray-50">
+          <div className="card p-5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <CreditCard className="text-gray-400 mr-2" size={20} />
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-400 ring-1 ring-slate-100">
+                  <CreditCard size={16} />
+                </span>
                 <div>
-                  <p className="text-sm text-gray-500">Payment</p>
-                  <p className="font-medium">${appointment.payment.amount}</p>
+                  <p className="text-xs text-slate-400">Payment</p>
+                  <p className="font-display text-lg font-extrabold text-slate-900">
+                    ${appointment.payment.amount}
+                  </p>
                 </div>
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                appointment.payment.status === 'completed' ? 'bg-green-100 text-green-700' :
-                appointment.payment.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-red-100 text-red-700'
-              }`}>
-                {appointment.payment.status}
-              </span>
+              <StatusBadge status={appointment.payment.status} />
             </div>
           </div>
         )}

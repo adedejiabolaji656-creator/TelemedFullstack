@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo, { Mark } from '../components/Logo';
 import {
-  HeartPulse,
   Mail,
   Lock,
   ArrowRight,
@@ -39,18 +39,13 @@ const Login = () => {
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
       {/* Brand panel */}
-      <div className="relative hidden w-[46%] overflow-hidden bg-gradient-to-br from-brand-950 via-brand-800 to-accent-900 lg:block">
+      <div className="relative hidden w-[46%] overflow-hidden bg-gradient-to-br from-sky-950 via-cyan-900 to-teal-950 lg:block">
         <div className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.6)_1px,transparent_1px)] [background-size:40px_40px]" />
         <div className="pointer-events-none absolute -top-24 -right-16 h-80 w-80 rounded-full bg-brand-500/25 blur-3xl" />
         <div className="pointer-events-none absolute bottom-10 -left-20 h-72 w-72 rounded-full bg-accent-500/20 blur-3xl" />
 
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
-          <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/25 backdrop-blur">
-              <HeartPulse size={19} strokeWidth={2.5} />
-            </span>
-            <span className="font-display text-xl font-extrabold">TeleMed</span>
-          </Link>
+          <Logo to="/" size={34} light wordmarkClassName="text-lg" />
 
           <div>
             <h2 className="max-w-md font-display text-4xl font-extrabold leading-tight tracking-tight">
@@ -96,8 +91,8 @@ const Login = () => {
       <div className="flex w-full items-center justify-center px-4 py-10 sm:px-8 lg:w-[54%]">
         <div className="w-full max-w-md animate-fade-up">
           <div className="mb-8 text-center lg:text-left">
-            <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-accent-600 text-white shadow-glow lg:mx-0">
-              <HeartPulse size={26} strokeWidth={2.4} />
+            <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-700 text-white shadow-glow lg:mx-0">
+              <Mark size={34} />
             </span>
             <h1 className="font-display text-3xl font-extrabold tracking-tight">Welcome back</h1>
             <p className="mt-1.5 text-slate-500">Sign in to continue your care journey</p>
@@ -120,7 +115,7 @@ const Login = () => {
                   id="email"
                   type="email"
                   className="input pl-10"
-                  placeholder="you@example.com"
+                  placeholder="you@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -166,9 +161,11 @@ const Login = () => {
 
           <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3.5 text-center text-xs text-slate-500">
             <p className="mb-1 flex items-center justify-center gap-1 font-semibold text-slate-600">
-              <BadgeCheck size={13} className="text-brand-500" /> Demo accounts
+              <BadgeCheck size={13} className="text-brand-500" /> Guest access
             </p>
-            <p>patient@example.com · doctor@example.com · admin@telemedicine.com</p>
+            <p>Patient · alex.morgan@telemedicine.com</p>
+            <p>Doctor · sarah.miller@telemedicine.com</p>
+            <p>Admin · admin@telemedicine.com</p>
           </div>
 
           <p className="mt-7 text-center text-sm text-slate-500">

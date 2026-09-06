@@ -1,7 +1,19 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { CreditCard, Calendar, CheckCircle, XCircle, Clock, DollarSign } from 'lucide-react';
+import {
+  CreditCard,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  Clock,
+  DollarSign,
+  Download,
+  BadgeCheck,
+} from 'lucide-react';
 import { format } from 'date-fns';
+import PageHeader, { Avatar } from '../components/PageHeader';
+import { Spinner } from '../components/Spinner';
+import StatusBadge from '../components/StatusBadge';
 
 const Payments = () => {
   const [payments, setPayments] = useState([]);
@@ -22,80 +34,126 @@ const Payments = () => {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const statusIcon = (status) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle size={18} className="text-green-500" />;
+        return <CheckCircle size={16} className="text-mint-600" />;
       case 'failed':
-        return <XCircle size={18} className="text-red-500" />;
+        return <XCircle size={16} className="text-red-500" />;
       case 'refunded':
-        return <DollarSign size={18} className="text-orange-500" />;
+        return <DollarSign size={16} className="text-orange-500" />;
       default:
-        return <Clock size={18} className="text-yellow-500" />;
+        return <Clock size={16} className="text-amber-500" />;
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      completed: 'bg-green-100 text-green-700',
-      pending: 'bg-yellow-100 text-yellow-700',
-      failed: 'bg-red-100 text-red-700',
-      refunded: 'bg-orange-100 text-orange-700',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-700';
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const totalPaid = payments
+    .filter((p) => p.status === 'completed')
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-6">Payments</h1>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageHeader
+        title="Payments"
+        subtitle="Your consultation billing, invoices, and receipts in one place."
+        icon={CreditCard}
+        actions={
+          <span className="badge bg-mint-50 text-mint-600 ring-1 ring-mint-100">
+            <BadgeCheck size={12} />
+            {payments.length ? `${payments.length} transactions` : 'No transactions yet'}
+          </span>
+        }
+      />
 
-      {payments.length === 0 ? (
-        <div className="card text-center py-12">
-          <CreditCard className="mx-auto text-gray-300 mb-4" size={48} />
-          <p className="text-gray-500 text-lg">No payments yet</p>
+      {loading ? (
+        <Spinner label="Loading payments..." />
+      ) : payments.length === 0 ? (
+        <div className="card mx-auto max-w-lg py-16 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 ring-1 ring-slate-100">
+            <CreditCard size={30} />
+          </div>
+          <p className="font-display text-lg font-bold text-slate-800">No payments yet</p>
+          <p className="mt-2 text-sm text-slate-500">
+            Billed consultations will appear here with a secure receipt.
+          </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {payments.map((payment) => (
-            <div key={payment._id} className="card hover:shadow-md transition-shadow">
+        <>
+          {totalPaid > 0 && (
+            <div className="mb-6 rounded-2xl bg-gradient-to-r from-teal-600 to-cyan-700 px-6 py-5 text-white shadow-lg shadow-cyan-500/25">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                    {getStatusIcon(payment.status)}
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
-                        {payment.status}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {format(new Date(payment.createdAt), 'MMM d, yyyy')}
-                      </span>
-                    </div>
-                    <p className="font-medium mt-1">
-                      Consultation with Dr. {payment.doctor?.user?.name}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {format(new Date(payment.appointment?.scheduledDate), 'MMM d, yyyy')}
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-sm font-medium text-cyan-100">Total paid this period</p>
+                  <p className="mt-1 font-display text-3xl font-extrabold">${totalPaid.toFixed(2)}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold">${payment.amount}</p>
-                  <p className="text-sm text-gray-500 uppercase">{payment.currency}</p>
-                </div>
+                <DollarSign size={34} className="opacity-40" />
               </div>
             </div>
-          ))}
-        </div>
+          )}
+
+          <div className="space-y-4">
+            {payments.map((payment) => (
+              <div key={payment._id} className="card p-5 transition-all duration-200 hover:shadow-lift">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-4">
+                    <span
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ring-1 ${
+                        payment.status === 'completed'
+                          ? 'bg-mint-50 text-mint-600 ring-mint-100'
+                          : payment.status === 'failed'
+                          ? 'bg-red-50 text-red-500 ring-red-100'
+                          : payment.status === 'refunded'
+                          ? 'bg-orange-50 text-orange-500 ring-orange-100'
+                          : 'bg-amber-50 text-amber-500 ring-amber-100'
+                      }`}
+                    >
+                      {statusIcon(payment.status)}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-display font-bold text-slate-900">
+                          {payment.doctor?.user?.name
+                            ? `Consultation with Dr. ${payment.doctor.user.name}`
+                            : 'Consultation'}
+                        </p>
+                        <StatusBadge status={payment.status} />
+                      </div>
+                      <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
+                        <Calendar size={12} />
+                        {payment.appointment?.scheduledDate
+                          ? format(new Date(payment.appointment.scheduledDate), 'EEEE, MMM d, yyyy')
+                          : format(new Date(payment.createdAt), 'MMM d, yyyy')}
+                        · Paid {format(new Date(payment.createdAt), 'MMM d, yyyy')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 sm:shrink-0">
+                    <div className="text-left sm:text-right">
+                      <p className="font-display text-xl font-extrabold text-slate-900">
+                        ${payment.amount}
+                      </p>
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                        {payment.currency} · {payment.method || 'card'}
+                      </p>
+                    </div>
+                    {payment.receiptUrl && (
+                      <a
+                        href={payment.receiptUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 text-slate-400 ring-1 ring-slate-200 transition-all hover:bg-brand-50 hover:text-brand-600 hover:ring-brand-100"
+                        aria-label="Download receipt"
+                      >
+                        <Download size={15} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

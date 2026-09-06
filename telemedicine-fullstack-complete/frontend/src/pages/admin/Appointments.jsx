@@ -1,7 +1,18 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Calendar, User, Clock, Video, MessageSquare, Filter } from 'lucide-react';
+import { Calendar, Clock, Video, MessageSquare, Users } from 'lucide-react';
 import { format } from 'date-fns';
+import PageHeader, { Avatar } from '../../components/PageHeader';
+import { Spinner } from '../../components/Spinner';
+import StatusBadge from '../../components/StatusBadge';
+
+const TABS = [
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'cancelled', label: 'Cancelled' },
+];
 
 const AdminAppointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -28,94 +39,113 @@ const AdminAppointments = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-700',
-      confirmed: 'bg-green-100 text-green-700',
-      completed: 'bg-blue-100 text-blue-700',
-      cancelled: 'bg-red-100 text-red-700',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-700';
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-6">All Appointments</h1>
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageHeader
+        title="All appointments"
+        subtitle="A live view of every consultation across the platform."
+        icon={Users}
+        actions={
+          <span className="badge bg-brand-50 text-brand-700 ring-1 ring-brand-100">
+            {appointments.length} shown
+          </span>
+        }
+      />
 
-      <div className="flex items-center space-x-2 mb-6">
-        <Filter size={18} className="text-gray-400" />
-        <select
-          className="input w-40"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="all">All</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
+      <div className="mb-6 flex flex-wrap gap-2">
+        {TABS.map((t) => {
+          const active = filter === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setFilter(t.key)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                active
+                  ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25'
+                  : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="card overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Patient</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Doctor</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Date & Time</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Type</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((apt) => (
-              <tr key={apt._id} className="border-b hover:bg-gray-50">
-                <td className="py-3 px-4">
-                  <div className="flex items-center space-x-2">
-                    <User size={16} className="text-gray-400" />
-                    <span className="text-sm">{apt.patient?.user?.name}</span>
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="text-sm">Dr. {apt.doctor?.user?.name}</span>
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center space-x-1 text-sm text-gray-600">
-                    <Calendar size={14} />
-                    <span>{format(new Date(apt.scheduledDate), 'MMM d, yyyy')}</span>
-                    <Clock size={14} className="ml-2" />
-                    <span>{apt.startTime}</span>
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="flex items-center text-sm text-gray-600">
-                    {apt.type === 'video' ? <Video size={14} className="mr-1" /> : <MessageSquare size={14} className="mr-1" />}
-                    {apt.type}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(apt.status)}`}>
-                    {apt.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {appointments.length === 0 && (
-          <p className="text-center text-gray-500 py-8">No appointments found</p>
-        )}
-      </div>
+      {loading ? (
+        <Spinner label="Loading appointments..." />
+      ) : (
+        <div className="card overflow-hidden p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/60">
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide text-slate-400">
+                    Patient
+                  </th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide text-slate-400">
+                    Doctor
+                  </th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide text-slate-400">
+                    Date & time
+                  </th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide text-slate-400">
+                    Type
+                  </th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-wide text-slate-400">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointments.map((apt) => (
+                  <tr key={apt._id} className="border-b border-slate-50 transition-colors hover:bg-slate-50/70">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2.5">
+                        <Avatar name={apt.patient?.user?.name} className="h-9 w-9 text-[10px]" />
+                        <span className="text-sm font-semibold text-slate-700">
+                          {apt.patient?.user?.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="text-sm text-slate-600">Dr. {apt.doctor?.user?.name}</span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                        <Calendar size={13} className="text-slate-400" />
+                        {format(new Date(apt.scheduledDate), 'MMM d, yyyy')}
+                        <span className="text-slate-200">•</span>
+                        <Clock size={13} className="text-slate-400" />
+                        {apt.startTime}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="flex items-center gap-1.5 text-sm capitalize text-slate-500">
+                        {apt.type === 'video' ? (
+                          <Video size={14} className="text-slate-400" />
+                        ) : (
+                          <MessageSquare size={14} className="text-slate-400" />
+                        )}
+                        {apt.type}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <StatusBadge status={apt.status} />
+                    </td>
+                  </tr>
+                ))}
+                {appointments.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-12 text-center text-sm text-slate-400">
+                      No appointments found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

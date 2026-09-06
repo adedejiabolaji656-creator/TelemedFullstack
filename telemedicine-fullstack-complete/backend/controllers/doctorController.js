@@ -54,6 +54,33 @@ exports.getDoctors = async (req, res) => {
   }
 };
 
+// @desc    Get distinct specializations of verified doctors
+// @route   GET /api/doctors/specializations
+// @access  Public
+exports.getSpecializations = async (req, res) => {
+  try {
+    const specializations = await DoctorProfile.distinct('specialization', {
+      verificationStatus: 'verified',
+      isAvailable: true,
+    });
+
+    const normalized = specializations
+      .filter((s) => s && s.trim())
+      .map((s) => s.trim())
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+    res.status(200).json({
+      success: true,
+      specializations: normalized,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // @desc    Get single doctor
 // @route   GET /api/doctors/:id
 // @access  Public

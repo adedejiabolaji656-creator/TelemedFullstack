@@ -2,8 +2,26 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, Clock, Video, MessageSquare, ChevronRight, Filter } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  Video,
+  MessageSquare,
+  ChevronRight,
+  Stethoscope,
+} from 'lucide-react';
 import { format } from 'date-fns';
+import PageHeader, { Avatar } from '../components/PageHeader';
+import { Spinner } from '../components/Spinner';
+import StatusBadge from '../components/StatusBadge';
+
+const FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'cancelled', label: 'Cancelled' },
+];
 
 const Appointments = () => {
   const { user } = useAuth();
@@ -28,103 +46,116 @@ const Appointments = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-700',
-      confirmed: 'bg-green-100 text-green-700',
-      completed: 'bg-blue-100 text-blue-700',
-      cancelled: 'bg-red-100 text-red-700',
-      no_show: 'bg-gray-100 text-gray-700',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-700';
-  };
-
-  const getTypeIcon = (type) => {
-    return type === 'video' ? <Video size={16} /> : <MessageSquare size={16} />;
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const isPatient = user?.role === 'patient';
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">My Appointments</h1>
-        <div className="flex items-center space-x-2">
-          <Filter size={18} className="text-gray-400" />
-          <select
-            className="input w-40"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageHeader
+        title="My appointments"
+        subtitle="Track bookings, join video visits, and manage follow-ups."
+        icon={Calendar}
+        actions={
+          isPatient && (
+            <Link to="/patient/doctors" className="btn-primary">
+              <Stethoscope size={16} />
+              Find a doctor
+            </Link>
+          )
+        }
+      />
+
+      {/* Filter tabs */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {FILTERS.map((f) => {
+          const active = filter === f.key;
+          return (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                active
+                  ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-md shadow-cyan-500/25'
+                  : 'bg-white text-slate-500 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-700'
+              }`}
+            >
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
-      {appointments.length === 0 ? (
-        <div className="card text-center py-12">
-          <Calendar className="mx-auto text-gray-300 mb-4" size={48} />
-          <p className="text-gray-500 text-lg">No appointments found</p>
-          {user?.role === 'patient' && (
-            <Link to="/patient/doctors" className="btn-primary mt-4 inline-block">
-              Find a Doctor
+      {loading ? (
+        <Spinner label="Loading appointments..." />
+      ) : appointments.length === 0 ? (
+        <div className="card mx-auto max-w-lg py-16 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 ring-1 ring-slate-100">
+            <Calendar size={30} />
+          </div>
+          <p className="font-display text-lg font-bold text-slate-800">No appointments found</p>
+          <p className="mt-2 text-sm text-slate-500">
+            {isPatient
+              ? 'When you book a visit, it will show up here.'
+              : 'Patient bookings will appear here automatically.'}
+          </p>
+          {isPatient && (
+            <Link to="/patient/doctors" className="btn-primary mt-6 inline-flex">
+              Browse doctors
+              <ChevronRight size={15} />
             </Link>
           )}
         </div>
       ) : (
         <div className="space-y-4">
-          {appointments.map((apt) => (
-            <Link
-              key={apt._id}
-              to={`/appointments/${apt._id}`}
-              className="card hover:shadow-md transition-shadow block"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    {getTypeIcon(apt.type)}
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(apt.status)}`}>
-                        {apt.status}
+          {appointments.map((apt) => {
+            const otherPartyName = isPatient
+              ? `Dr. ${apt.doctor?.user?.name}`
+              : apt.patient?.user?.name;
+            const specialization = apt.doctor?.specialization || 'General Practice';
+            return (
+              <Link
+                key={apt._id}
+                to={`/appointments/${apt._id}`}
+                className="card group flex flex-col gap-4 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex items-center gap-4">
+                  <Avatar name={otherPartyName} className="h-12 w-12 text-sm" />
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate font-display font-bold text-slate-900">
+                        {otherPartyName}
+                      </p>
+                      <StatusBadge status={apt.status} />
+                      <span className="flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-semibold capitalize text-brand-700">
+                        {apt.type === 'video' ? <Video size={11} /> : <MessageSquare size={11} />}
+                        {apt.type}
                       </span>
-                      <span className="text-xs text-gray-400 capitalize">{apt.type}</span>
                     </div>
-                    <p className="font-medium mt-1">
-                      {user?.role === 'patient'
-                        ? `Dr. ${apt.doctor?.user?.name}`
-                        : apt.patient?.user?.name}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {apt.doctor?.specialization || 'General Practice'}
-                    </p>
+                    <p className="mt-0.5 text-xs font-medium text-teal-600">{specialization}</p>
+                    {apt.symptoms && (
+                      <p className="mt-1 line-clamp-1 text-xs text-slate-400">"{apt.symptoms}"</p>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium flex items-center text-gray-700">
-                    <Calendar size={14} className="mr-1" />
-                    {format(new Date(apt.scheduledDate), 'MMM d, yyyy')}
-                  </p>
-                  <p className="text-sm text-gray-500 flex items-center justify-end mt-1">
-                    <Clock size={14} className="mr-1" />
-                    {apt.startTime} - {apt.endTime}
-                  </p>
-                  <ChevronRight className="ml-auto mt-2 text-gray-400" size={18} />
+
+                <div className="flex items-center gap-5 sm:shrink-0">
+                  <div className="text-left sm:text-right">
+                    <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 sm:justify-end">
+                      <Calendar size={13} className="text-slate-400" />
+                      {format(new Date(apt.scheduledDate), 'MMM d, yyyy')}
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400 sm:justify-end">
+                      <Clock size={12} />
+                      {apt.startTime} – {apt.endTime}
+                    </p>
+                  </div>
+                  <ChevronRight
+                    size={18}
+                    className="text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-teal-500 sm:hidden"
+                  />
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/Logo';
+import { SPECIALIZATIONS } from '../utils/specializations';
 import {
-  HeartPulse,
   User as UserIcon,
   Mail,
   Lock,
@@ -52,17 +53,12 @@ const Register = () => {
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
       {/* Brand panel */}
-      <div className="relative hidden w-[46%] overflow-hidden bg-gradient-to-br from-accent-900 via-brand-900 to-brand-950 lg:block">
+      <div className="relative hidden w-[46%] overflow-hidden bg-gradient-to-br from-teal-950 via-cyan-900 to-sky-950 lg:block">
         <div className="pointer-events-none absolute -top-24 right-10 h-80 w-80 rounded-full bg-accent-500/20 blur-3xl" />
         <div className="pointer-events-none absolute bottom-16 -left-16 h-72 w-72 rounded-full bg-brand-500/25 blur-3xl" />
 
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
-          <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/25 backdrop-blur">
-              <HeartPulse size={19} strokeWidth={2.5} />
-            </span>
-            <span className="font-display text-xl font-extrabold">TeleMed</span>
-          </Link>
+          <Logo to="/" size={34} light wordmarkClassName="text-lg" />
 
           <div>
             <span className="badge bg-white/10 text-brand-200 ring-1 ring-white/20 backdrop-blur">
@@ -172,7 +168,7 @@ const Register = () => {
                   type="text"
                   name="name"
                   className="input pl-10"
-                  placeholder="Dr. Jane Smith"
+                  placeholder="e.g. Priya Sharma"
                   value={form.name}
                   onChange={handleChange}
                   required
@@ -191,7 +187,7 @@ const Register = () => {
                   type="email"
                   name="email"
                   className="input pl-10"
-                  placeholder="you@example.com"
+                  placeholder="you@company.com"
                   value={form.email}
                   onChange={handleChange}
                   required
@@ -211,7 +207,7 @@ const Register = () => {
                   type="tel"
                   name="phone"
                   className="input pl-10"
-                  placeholder="(555) 000-0000"
+                  placeholder="(512) 555-0123"
                   value={form.phone}
                   onChange={handleChange}
                 />
@@ -252,11 +248,17 @@ const Register = () => {
                     type="text"
                     name="specialization"
                     className="input"
-                    placeholder="e.g. Cardiology"
+                    list="specialization-options"
+                    placeholder="e.g. Cardiology, Radiology"
                     value={form.specialization}
                     onChange={handleChange}
                     required
                   />
+                  <datalist id="specialization-options">
+                    {SPECIALIZATIONS.map((s) => (
+                      <option key={s} value={s} />
+                    ))}
+                  </datalist>
                 </div>
                 <div>
                   <label className="label" htmlFor="licenseNumber">

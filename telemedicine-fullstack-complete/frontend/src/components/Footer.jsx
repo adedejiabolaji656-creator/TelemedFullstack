@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
+import Logo from './Logo';
 import {
-  HeartPulse,
   Mail,
   Twitter,
   Linkedin,
@@ -50,27 +50,26 @@ const Footer = () => {
         <div className="grid gap-12 py-14 lg:grid-cols-5">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-accent-600 text-white shadow-glow">
-                <HeartPulse size={20} strokeWidth={2.5} />
-              </span>
-              <span className="font-display text-xl font-extrabold text-white">
-                Tele<span className="gradient-text">Med</span>
-              </span>
-            </Link>
+            <Logo
+              to="/"
+              size={36}
+              light
+              markClassName="opacity-90"
+              wordmarkClassName="text-white"
+            />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-400">
               Connecting patients with verified doctors through secure video consultations,
               digital prescriptions, and instant health records — care that travels with you.
             </p>
             <div className="mt-6 space-y-2.5 text-sm text-slate-400">
               <p className="flex items-center gap-2">
-                <MapPin size={15} className="text-brand-400" /> 123 Wellness Ave, Health City
+                <MapPin size={15} className="text-brand-400" /> 300 W 6th St, Suite 210, Austin, TX 78701
               </p>
               <p className="flex items-center gap-2">
-                <Phone size={15} className="text-brand-400" /> +1 (555) 010-2030
+                <Phone size={15} className="text-brand-400" /> +1 (512) 555-0170
               </p>
               <p className="flex items-center gap-2">
-                <Mail size={15} className="text-brand-400" /> support@telemed.example
+                <Mail size={15} className="text-brand-400" /> support@telemedicine.com
               </p>
             </div>
             <div className="mt-6 flex gap-3">

@@ -37,8 +37,8 @@ export default {
       },
       boxShadow: {
         soft: '0 2px 12px -2px rgb(15 23 42 / 0.06), 0 4px 24px -4px rgb(15 23 42 / 0.04)',
-        lift: '0 12px 32px -8px rgb(2 132 199 / 0.18), 0 4px 16px -4px rgb(15 23 42 / 0.08)',
-        glow: '0 0 40px -8px rgb(14 165 233 / 0.45)',
+        lift: '0 12px 32px -8px rgb(8 145 178 / 0.18), 0 4px 16px -4px rgb(15 23 42 / 0.08)',
+        glow: '0 0 40px -8px rgb(20 184 166 / 0.4)',
         card: '0 1px 3px rgb(15 23 42 / 0.05), 0 8px 24px -12px rgb(15 23 42 / 0.12)',
       },
       animation: {

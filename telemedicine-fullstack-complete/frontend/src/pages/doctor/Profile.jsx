@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Save, Award, Languages, FileText } from 'lucide-react';
+import { SPECIALIZATIONS } from '../../utils/specializations';
+import { Save, Award, Languages, FileText, Stethoscope } from 'lucide-react';
+import PageHeader from '../../components/PageHeader';
 
 const DoctorProfileEdit = () => {
   const { user } = useAuth();
@@ -89,21 +91,24 @@ const DoctorProfileEdit = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-2">Doctor Profile</h1>
-      <p className="text-gray-500 mb-6">Update your professional information</p>
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageHeader
+        title="Doctor profile"
+        subtitle="Update your professional information and public listing."
+        icon={Stethoscope}
+      />
 
       {saved && (
-        <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+        <div className="mb-5 rounded-xl border border-mint-100 bg-mint-50 p-3.5 text-sm font-medium text-mint-600">
           Profile saved successfully!
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="card">
-          <h3 className="font-semibold mb-4 flex items-center">
-            <Award className="mr-2 text-blue-600" size={18} />
-            Professional Details
+          <h3 className="mb-4 flex items-center gap-1.5 font-display text-lg font-bold text-slate-900">
+            <Award size={18} className="text-mint-600" />
+            Professional details
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -112,10 +117,16 @@ const DoctorProfileEdit = () => {
                 type="text"
                 name="specialization"
                 className="input"
+                list="specialization-options"
                 value={form.specialization}
                 onChange={handleChange}
                 required
               />
+              <datalist id="specialization-options">
+                {SPECIALIZATIONS.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
             </div>
             <div>
               <label className="label">License Number</label>
@@ -180,13 +191,13 @@ const DoctorProfileEdit = () => {
         </div>
 
         <div className="card">
-          <h3 className="font-semibold mb-4 flex items-center">
-            <FileText className="mr-2 text-blue-600" size={18} />
+          <h3 className="mb-4 flex items-center gap-1.5 font-display text-lg font-bold text-slate-900">
+            <FileText size={18} className="text-mint-600" />
             Education
           </h3>
           <div className="space-y-4">
             {form.education.map((edu, index) => (
-              <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-gray-50 rounded-lg">
+              <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
                 <input
                   type="text"
                   className="input"
@@ -224,7 +235,7 @@ const DoctorProfileEdit = () => {
             <button
               type="button"
               onClick={addEducation}
-              className="text-blue-600 text-sm font-medium hover:underline"
+              className="text-sm font-semibold text-teal-600 transition-colors hover:underline hover:text-teal-700"
             >
               + Add education
             </button>

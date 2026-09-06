@@ -1,8 +1,33 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { FileText, Calendar, User, Tag, Download, Plus } from 'lucide-react';
+import {
+  FileText,
+  Calendar,
+  Tag,
+  Download,
+  Plus,
+  FolderHeart,
+  X,
+  Stethoscope,
+  Beaker,
+  ScanLine,
+  Pill,
+  Syringe,
+  Scissors,
+} from 'lucide-react';
 import { format } from 'date-fns';
+import PageHeader, { Avatar } from '../components/PageHeader';
+import { Spinner } from '../components/Spinner';
+
+const TYPE_META = {
+  consultation: { icon: Stethoscope, classes: 'bg-brand-50 text-brand-700 ring-brand-100' },
+  lab_report: { icon: Beaker, classes: 'bg-mint-50 text-mint-600 ring-mint-100' },
+  imaging: { icon: ScanLine, classes: 'bg-violet-50 text-violet-700 ring-violet-100' },
+  prescription: { icon: Pill, classes: 'bg-amber-50 text-amber-700 ring-amber-100' },
+  vaccination: { icon: Syringe, classes: 'bg-pink-50 text-pink-700 ring-pink-100' },
+  surgery: { icon: Scissors, classes: 'bg-red-50 text-red-700 ring-red-100' },
+};
 
 const MedicalRecords = () => {
   const { user } = useAuth();
@@ -47,165 +72,184 @@ const MedicalRecords = () => {
     }
   };
 
-  const getTypeColor = (type) => {
-    const colors = {
-      consultation: 'bg-blue-100 text-blue-700',
-      lab_report: 'bg-green-100 text-green-700',
-      imaging: 'bg-purple-100 text-purple-700',
-      prescription: 'bg-yellow-100 text-yellow-700',
-      vaccination: 'bg-pink-100 text-pink-700',
-      surgery: 'bg-red-100 text-red-700',
-    };
-    return colors[type] || 'bg-gray-100 text-gray-700';
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  const meta = (type) => TYPE_META[type] || TYPE_META.consultation;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Medical Records</h1>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="btn-primary flex items-center space-x-2"
-        >
-          <Plus size={18} />
-          <span>Add Record</span>
-        </button>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageHeader
+        title="Medical records"
+        subtitle="Your diagnoses, lab reports, and care history in one timeline."
+        icon={FolderHeart}
+        actions={
+          <button onClick={() => setShowAddModal(true)} className="btn-primary">
+            <Plus size={16} />
+            Add record
+          </button>
+        }
+      />
 
-      {records.length === 0 ? (
-        <div className="card text-center py-12">
-          <FileText className="mx-auto text-gray-300 mb-4" size={48} />
-          <p className="text-gray-500 text-lg">No medical records yet</p>
+      {loading ? (
+        <Spinner label="Loading your records..." />
+      ) : records.length === 0 ? (
+        <div className="card mx-auto max-w-lg py-16 text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 ring-1 ring-slate-100">
+            <FileText size={30} />
+          </div>
+          <p className="font-display text-lg font-bold text-slate-800">No medical records yet</p>
+          <p className="mt-2 text-sm text-slate-500">
+            Add a record below or they'll be attached automatically by your doctors.
+          </p>
+          <button onClick={() => setShowAddModal(true)} className="btn-primary mt-6">
+            <Plus size={15} />
+            Add your first record
+          </button>
         </div>
       ) : (
         <div className="space-y-4">
-          {records.map((record) => (
-            <div key={record._id} className="card hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getTypeColor(record.type)}`}>
-                      {record.type.replace('_', ' ')}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {format(new Date(record.createdAt), 'MMM d, yyyy')}
-                    </span>
+          {records.map((record) => {
+            const { icon: TypeIcon, classes } = meta(record.type);
+            return (
+              <div key={record._id} className="card p-5 transition-all duration-200 hover:shadow-lift">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl ring-1 ${classes}`}
+                      >
+                        <TypeIcon size={16} />
+                      </span>
+                      <h3 className="font-display text-lg font-bold text-slate-900">{record.title}</h3>
+                      <span className={`badge capitalize ring-1 ${classes}`}>
+                        {record.type.replace('_', ' ')}
+                      </span>
+                    </div>
+
+                    {record.doctor && (
+                      <p className="mt-2.5 flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                        <Avatar name={`Dr. ${record.doctor?.user?.name}`} className="h-6 w-6 text-[9px]" />
+                        Dr. {record.doctor?.user?.name}
+                        <span className="mx-1 h-3 w-px bg-slate-200" />
+                        <span className="flex items-center gap-1 text-slate-400">
+                          <Calendar size={11} />
+                          {format(new Date(record.createdAt), 'MMM d, yyyy')}
+                        </span>
+                      </p>
+                    )}
+
+                    {record.description && (
+                      <p className="mt-3 text-sm leading-relaxed text-slate-600">{record.description}</p>
+                    )}
+
+                    {record.tags?.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {record.tags.map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500"
+                          >
+                            <Tag size={10} className="text-slate-400" />
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  <h3 className="font-semibold text-lg mb-1">{record.title}</h3>
-
-                  {record.doctor && (
-                    <p className="text-sm text-gray-500 mb-2 flex items-center">
-                      <User size={14} className="mr-1" />
-                      Dr. {record.doctor?.user?.name}
-                    </p>
-                  )}
-
-                  {record.description && (
-                    <p className="text-gray-600 text-sm mb-3">{record.description}</p>
-                  )}
-
-                  {record.tags?.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {record.tags.map((tag, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs flex items-center">
-                          <Tag size={10} className="mr-1" />
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                  {record.documentUrl && (
+                    <a
+                      href={record.documentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 ring-1 ring-slate-200 transition-all hover:bg-brand-50 hover:text-brand-600 hover:ring-brand-100"
+                      aria-label="Download document"
+                    >
+                      <Download size={16} />
+                    </a>
                   )}
                 </div>
-
-                {record.documentUrl && (
-                  <a
-                    href={record.documentUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <Download size={20} />
-                  </a>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {/* Add Record Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">Add Medical Record</h2>
-              <form onSubmit={handleAddRecord} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                  <input
-                    type="text"
-                    className="input"
-                    value={newRecord.title}
-                    onChange={(e) => setNewRecord({ ...newRecord, title: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                  <select
-                    className="input"
-                    value={newRecord.type}
-                    onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value })}
-                  >
-                    <option value="consultation">Consultation</option>
-                    <option value="lab_report">Lab Report</option>
-                    <option value="imaging">Imaging</option>
-                    <option value="prescription">Prescription</option>
-                    <option value="vaccination">Vaccination</option>
-                    <option value="surgery">Surgery</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    className="input h-24 resize-none"
-                    value={newRecord.description}
-                    onChange={(e) => setNewRecord({ ...newRecord, description: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma separated)</label>
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="e.g. annual checkup, blood pressure"
-                    value={newRecord.tags}
-                    onChange={(e) => setNewRecord({ ...newRecord, tags: e.target.value })}
-                  />
-                </div>
-                <div className="flex justify-end space-x-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddModal(false)}
-                    className="btn-secondary"
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    Add Record
-                  </button>
-                </div>
-              </form>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-lift">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+              <h2 className="font-display text-lg font-bold text-slate-900">Add medical record</h2>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
             </div>
+            <form onSubmit={handleAddRecord} className="space-y-5 p-6">
+              <div>
+                <label className="label" htmlFor="record-title">Title</label>
+                <input
+                  id="record-title"
+                  type="text"
+                  className="input"
+                  placeholder="e.g. Annual physical exam"
+                  value={newRecord.title}
+                  onChange={(e) => setNewRecord({ ...newRecord, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="record-type">Type</label>
+                <select
+                  id="record-type"
+                  className="input"
+                  value={newRecord.type}
+                  onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value })}
+                >
+                  <option value="consultation">Consultation</option>
+                  <option value="lab_report">Lab Report</option>
+                  <option value="imaging">Imaging</option>
+                  <option value="prescription">Prescription</option>
+                  <option value="vaccination">Vaccination</option>
+                  <option value="surgery">Surgery</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="label" htmlFor="record-desc">Description</label>
+                <textarea
+                  id="record-desc"
+                  className="input h-24 resize-none"
+                  placeholder="Short summary of this record"
+                  value={newRecord.description}
+                  onChange={(e) => setNewRecord({ ...newRecord, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="record-tags">
+                  Tags <span className="font-normal text-slate-400">(comma separated)</span>
+                </label>
+                <input
+                  id="record-tags"
+                  type="text"
+                  className="input"
+                  placeholder="e.g. annual checkup, blood pressure"
+                  value={newRecord.tags}
+                  onChange={(e) => setNewRecord({ ...newRecord, tags: e.target.value })}
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary">
+                  <Plus size={15} />
+                  Add record
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

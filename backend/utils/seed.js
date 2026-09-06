@@ -26,13 +26,13 @@ const seed = async () => {
     }
 
     // Demo doctor
-    let doctorUser = await User.findOne({ email: 'doctor@example.com' });
+    let doctorUser = await User.findOne({ email: 'sarah.miller@telemedicine.com' });
     if (!doctorUser) {
       doctorUser = await User.create({
         name: 'Dr. Sarah Miller',
-        email: 'doctor@example.com',
+        email: 'sarah.miller@telemedicine.com',
         password: 'doctor123',
-        phone: '555-0101',
+        phone: '512-555-0101',
         role: 'doctor',
         emailVerified: true,
       });
@@ -72,13 +72,13 @@ const seed = async () => {
     }
 
     // Demo patient
-    let patientUser = await User.findOne({ email: 'patient@example.com' });
+    let patientUser = await User.findOne({ email: 'alex.morgan@telemedicine.com' });
     if (!patientUser) {
       patientUser = await User.create({
-        name: 'John Doe',
-        email: 'patient@example.com',
+        name: 'Alex Morgan',
+        email: 'alex.morgan@telemedicine.com',
         password: 'patient123',
-        phone: '555-0201',
+        phone: '512-555-0177',
         role: 'patient',
         emailVerified: true,
       });
@@ -86,7 +86,7 @@ const seed = async () => {
         user: patientUser._id,
         gender: 'male',
         bloodType: 'O+',
-        dateOfBirth: new Date('1990-05-15'),
+        dateOfBirth: new Date('1991-03-22'),
       });
       console.log('Created demo patient');
     } else {
@@ -94,9 +94,9 @@ const seed = async () => {
     }
 
     console.log('\nSeed complete. Demo accounts:');
-    console.log('  Admin:   admin@telemedicine.com / admin123');
-    console.log('  Doctor:  doctor@example.com    / doctor123');
-    console.log('  Patient: patient@example.com   / patient123');
+    console.log('  Admin:   admin@telemedicine.com     / admin123');
+    console.log('  Doctor:  sarah.miller@telemedicine.com / doctor123');
+    console.log('  Patient: alex.morgan@telemedicine.com  / patient123');
     process.exit(0);
   } catch (error) {
     console.error('Seed failed:', error.message);

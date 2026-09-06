@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Mark } from '../components/Logo';
 import {
-  HeartPulse,
   Video,
   ShieldCheck,
   Clock,
@@ -66,6 +66,10 @@ const specialties = [
   { emoji: '👁️', name: 'Ophthalmology' },
   { emoji: '🌸', name: 'Dermatology' },
   { emoji: '🍎', name: 'Nutrition' },
+  { emoji: '🩻', name: 'Radiology' },
+  { emoji: '🫁', name: 'Pulmonology' },
+  { emoji: '🦠', name: 'Oncology' },
+  { emoji: '🧬', name: 'Endocrinology' },
 ];
 
 const stats = [
@@ -216,11 +220,11 @@ const Home = () => {
   return (
     <div>
       {/* ================= HERO ================= */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-800 to-accent-900 text-white">
+      <section className="relative overflow-hidden bg-gradient-to-br from-teal-950 via-cyan-900 to-sky-950 text-white">
         {/* decorative grid + glows */}
         <div className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.6)_1px,transparent_1px)] [background-size:44px_44px]" />
-        <div className="pointer-events-none absolute -top-32 right-1/4 h-96 w-96 rounded-full bg-brand-500/25 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-accent-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -top-32 right-1/4 h-96 w-96 rounded-full bg-cyan-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-0 h-72 w-72 rounded-full bg-teal-500/20 blur-3xl" />
 
         <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-16 sm:px-6 lg:grid lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-8 lg:pt-24">
           <div className="max-w-xl">
@@ -232,7 +236,7 @@ const Home = () => {
             <h1 className="mt-5 animate-fade-up font-display text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl xl:text-6xl [animation-delay:80ms]">
               Healthcare that
               <br />
-              comes <span className="bg-gradient-to-r from-brand-300 via-sky-300 to-accent-400 bg-clip-text text-transparent">to you.</span>
+              comes <span className="bg-gradient-to-r from-teal-300 via-cyan-300 to-sky-300 bg-clip-text text-transparent">to you.</span>
             </h1>
 
             <p className="mt-6 animate-fade-up text-lg leading-relaxed text-brand-100/90 [animation-delay:160ms]">
@@ -434,13 +438,15 @@ const Home = () => {
       {/* ================= CTA ================= */}
       <section className="py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-700 via-brand-600 to-accent-700 px-6 py-16 text-center text-white shadow-lift sm:px-16">
+          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-teal-700 via-teal-600 to-cyan-700 px-6 py-16 text-center text-white shadow-lift sm:px-16">
             <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:22px_22px]" />
             <div className="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-20 -right-10 h-64 w-64 rounded-full bg-brand-300/20 blur-3xl" />
 
             <div className="relative">
-              <HeartPulse size={36} className="mx-auto mb-5 animate-pulse-soft text-brand-200" strokeWidth={2.2} />
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/25 backdrop-blur">
+                <Mark size={40} />
+              </div>
               <h2 className="font-display text-3xl font-extrabold sm:text-4xl">
                 Your doctor is one tap away
               </h2>

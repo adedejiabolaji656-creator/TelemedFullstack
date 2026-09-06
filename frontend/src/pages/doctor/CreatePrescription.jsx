@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Plus, Trash2, FileText, ChevronLeft, Pill } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, Pill, ClipboardPlus } from 'lucide-react';
+import PageHeader, { Avatar } from '../../components/PageHeader';
+import { Spinner } from '../../components/Spinner';
+import { format } from 'date-fns';
 
 const CreatePrescription = () => {
   const { appointmentId } = useParams();
@@ -68,42 +71,46 @@ const CreatePrescription = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Spinner label="Loading appointment details..." />;
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-teal-600"
       >
-        <ChevronLeft size={20} />
+        <ChevronLeft size={15} />
         Back
       </button>
 
-      <div className="flex items-center space-x-3 mb-6">
-        <FileText className="text-blue-600" size={28} />
-        <h1 className="text-3xl font-bold">Write Prescription</h1>
-      </div>
+      <PageHeader
+        title="Write prescription"
+        subtitle="Send medications and instructions straight to your patient."
+        icon={ClipboardPlus}
+      />
 
       {appointment && (
-        <div className="card bg-blue-50 border-blue-200 mb-6">
-          <p className="text-sm text-blue-700">
-            Patient: <span className="font-medium">{appointment.patient?.user?.name}</span>
-          </p>
-          <p className="text-sm text-blue-600 mt-1">
-            Appointment Date: {new Date(appointment.scheduledDate).toLocaleDateString()}
-          </p>
+        <div className="mb-6 flex items-center gap-4 rounded-2xl border border-teal-100 bg-teal-50/60 p-5">
+          <Avatar name={appointment.patient?.user?.name} className="h-12 w-12 text-sm" />
+          <div>
+            <p className="text-sm text-slate-600">
+              Patient: <span className="font-semibold text-slate-800">{appointment.patient?.user?.name}</span>
+            </p>
+            <p className="mt-0.5 text-sm text-teal-700">
+              Appointment on{' '}
+              {appointment.scheduledDate
+                ? format(new Date(appointment.scheduledDate), 'EEEE, MMM d, yyyy')
+                : '—'}{' '}
+              at {appointment.startTime}
+            </p>
+          </div>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="card">
-          <h3 className="font-semibold mb-4">Diagnosis</h3>
+        <div className="card p-6">
+          <h3 className="mb-4 font-display text-lg font-bold text-slate-900">Diagnosis</h3>
           <input
             type="text"
             className="input"
@@ -114,26 +121,26 @@ const CreatePrescription = () => {
           />
         </div>
 
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold flex items-center">
-              <Pill className="mr-2" size={18} />
+        <div className="card p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="flex items-center gap-1.5 font-display text-lg font-bold text-slate-900">
+              <Pill size={18} className="text-teal-600" />
               Medications
             </h3>
             <button
               type="button"
               onClick={addMedication}
-              className="flex items-center space-x-1 text-blue-600 text-sm hover:text-blue-700"
+              className="inline-flex items-center gap-1 rounded-xl bg-teal-50 px-3.5 py-2 text-sm font-semibold text-teal-700 ring-1 ring-teal-100 transition-all hover:bg-teal-100"
             >
-              <Plus size={16} />
-              <span>Add Medication</span>
+              <Plus size={15} />
+              Add medication
             </button>
           </div>
 
           <div className="space-y-4">
             {medications.map((med, index) => (
-              <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div key={index} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <input
                     type="text"
                     className="input"
@@ -178,9 +185,9 @@ const CreatePrescription = () => {
                   <button
                     type="button"
                     onClick={() => removeMedication(index)}
-                    className="mt-2 flex items-center text-red-500 text-sm hover:text-red-700"
+                    className="mt-2.5 inline-flex items-center gap-1 text-sm font-medium text-red-500 transition-colors hover:text-red-700"
                   >
-                    <Trash2 size={14} className="mr-1" />
+                    <Trash2 size={14} />
                     Remove
                   </button>
                 )}
@@ -189,11 +196,13 @@ const CreatePrescription = () => {
           </div>
         </div>
 
-        <div className="card">
-          <h3 className="font-semibold mb-4">Additional Information</h3>
+        <div className="card p-6">
+          <h3 className="mb-4 font-display text-lg font-bold text-slate-900">
+            Additional information
+          </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
+              <label className="label">Valid until</label>
               <input
                 type="date"
                 className="input"
@@ -202,7 +211,7 @@ const CreatePrescription = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+              <label className="label">Notes</label>
               <textarea
                 className="input h-24 resize-none"
                 placeholder="Additional notes for the patient..."
@@ -213,20 +222,12 @@ const CreatePrescription = () => {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="btn-secondary"
-          >
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={() => navigate(-1)} className="btn-secondary">
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="btn-primary disabled:opacity-50"
-          >
-            {submitting ? 'Creating...' : 'Create Prescription'}
+          <button type="submit" disabled={submitting} className="btn-primary disabled:opacity-50">
+            {submitting ? 'Creating...' : 'Create prescription'}
           </button>
         </div>
       </form>
