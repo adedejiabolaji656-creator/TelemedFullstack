@@ -21,9 +21,26 @@ const createApp = () => {
   const app = express();
 
   // CORS
+  // Allow the dev origin plus every origin listed in CLIENT_URL (comma separated).
+  // CLIENT_URL now supports the deployed frontend so the browser stops blocking calls.
+  const allowedOrigins = new Set([
+    ...(process.env.CLIENT_URL || '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+    'http://localhost:5173',
+    'http://localhost:5000',
+    'https://telemedicine-rouge.vercel.app',
+  ]);
+
   app.use(
     cors({
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      origin(origin, callback) {
+        if (!origin || allowedOrigins.has(origin)) {
+          return callback(null, true);
+        }
+        return callback(null, false);
+      },
       credentials: true,
     })
   );
@@ -45,9 +62,26 @@ const createApp = () => {
     app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
   }
 
-  // Health check
+  // Health check (no DB required)
   app.get('/api/health', (req, res) => {
     res.status(200).json({ success: true, message: 'TeleMedicine API is running' });
+  });
+
+  // Ensure MongoDB is connected before handling any data request. This avoids
+  // Mongoose "buffering timed out" errors on cold starts and returns a clear
+  // diagnostic when MONGODB_URI is unreachable instead of a generic failure.
+  app.use(async (req, res, next) => {
+    try {
+      await connectDB();
+      next();
+    } catch (error) {
+      res.status(503).json({
+        success: false,
+        message:
+          'Database is not reachable. Check the backend MONGODB_URI environment variable.',
+        detail: error.message,
+      });
+    }
   });
 
   // Routes
