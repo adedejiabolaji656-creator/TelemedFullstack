@@ -152,7 +152,7 @@ const PatientDoctors = () => {
             onChange={(e) => setCity(e.target.value)}
           >
             <option value="">All cities</option>
-            {['Lagos', 'Abuja', 'Ibadan', 'Kano', 'Port Harcourt', 'Enugu'].map((c) => (
+            {['Lagos'].map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>

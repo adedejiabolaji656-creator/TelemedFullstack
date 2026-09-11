@@ -43,9 +43,9 @@ const DOCTORS = [
     yearsExperience: 11,
     fee: 12000,
     bio: 'Consultant dermatologist with a soft spot for acne, eczema and the kind of skin problems people feel embarrassed to mention. Half my job is reassurance; the other half is a plan that fits your week.',
-    hospital: 'National Hospital Abuja',
-    city: 'Abuja',
-    state: 'FCT',
+    hospital: 'Lagoon Hospitals, Apapa',
+    city: 'Lagos',
+    state: 'Lagos',
     languages: ['English', 'Igbo'],
     education: [
       { degree: 'MBBS', institution: 'University of Nigeria, Nsukka (UNN)', year: 2012 },
@@ -53,16 +53,16 @@ const DOCTORS = [
     ],
   },
   {
-    name: 'Dr. Chiamaka Osei',
-    email: 'chiamaka.osei@telemedicine.com',
+    name: 'Dr. Chiamaka Nwosu',
+    email: 'chiamaka.nwosu@telemedicine.com',
     specialization: 'Pediatrics',
     licenseNumber: 'MDCN-R-71509',
     yearsExperience: 13,
     fee: 10000,
     bio: 'Consultant pediatrician and mother of two. I treat ear infections, asthma, fevers and the occasional mysterious rash. Sick children rarely follow scripts, so neither do I.',
-    hospital: 'University of Port Harcourt Teaching Hospital (UPTH)',
-    city: 'Port Harcourt',
-    state: 'Rivers',
+    hospital: 'St. Nicholas Hospital, Lagos Island',
+    city: 'Lagos',
+    state: 'Lagos',
     languages: ['English', 'Igbo'],
     education: [
       { degree: 'MBBS', institution: 'University of Port Harcourt', year: 2010 },
@@ -77,9 +77,9 @@ const DOCTORS = [
     yearsExperience: 10,
     fee: 8000,
     bio: 'Family physician for colds, malaria, typhoid, allergies and annual checkups. If you need a specialist, I will send you to someone I would send my own family to.',
-    hospital: 'Aminu Kano Teaching Hospital (AKTH)',
-    city: 'Kano',
-    state: 'Kano',
+    hospital: 'Reddington Hospital, Victoria Island',
+    city: 'Lagos',
+    state: 'Lagos',
     languages: ['English', 'Hausa'],
     education: [
       { degree: 'MBBS', institution: 'Bayero University Kano', year: 2014 },
@@ -94,9 +94,9 @@ const DOCTORS = [
     yearsExperience: 17,
     fee: 25000,
     bio: 'Orthopedic surgeon who also spends a lot of time helping people avoid surgery altogether. Knee, back, shoulder — if it hurts when you move, we can probably sort it out.',
-    hospital: 'University College Hospital (UCH), Ibadan',
-    city: 'Ibadan',
-    state: 'Oyo',
+    hospital: 'National Orthopaedic Hospital, Igbobi',
+    city: 'Lagos',
+    state: 'Lagos',
     languages: ['English', 'Yoruba'],
     education: [
       { degree: 'MBBS', institution: 'University of Ibadan', year: 2006 },
@@ -129,7 +129,7 @@ const DOCTORS = [
     fee: 15000,
     bio: 'Psychiatrist for anxiety, depression and burnout. Medication is sometimes part of it, but listening is always the first dose.',
     hospital: 'Federal Neuro-Psychiatric Hospital, Yaba',
-    city: 'Yaba, Lagos',
+    city: 'Lagos',
     state: 'Lagos',
     languages: ['English', 'Yoruba'],
     education: [
@@ -145,9 +145,9 @@ const DOCTORS = [
     yearsExperience: 9,
     fee: 15000,
     bio: 'Eye doctor for dry eyes, red eyes, floaters and blurry vision. Most eye panics turn out to be minor; I will tell you honestly when it actually matters.',
-    hospital: 'University of Nigeria Teaching Hospital (UNTH), Enugu',
-    city: 'Enugu',
-    state: 'Enugu',
+    hospital: 'Eye Foundation Hospital, Ikeja',
+    city: 'Lagos',
+    state: 'Lagos',
     languages: ['English', 'Igbo'],
     education: [
       { degree: 'MBBS', institution: 'University of Nigeria, Nsukka (UNN)', year: 2014 },
@@ -163,9 +163,9 @@ const REVIEWS = [
   { doctor: 'emeka.nwachukwu@telemedicine.com', name: 'Tobi Alade', email: 'tobi.alade@mail.com', rating: 5, comment: 'Sent photos of my acne and within a day had a routine I can actually stick to. No lecture about washing my face, which I appreciated.' },
   { doctor: 'emeka.nwachukwu@telemedicine.com', name: 'Bisi Ogunwande', email: 'bisi.ogunwande@mail.com', rating: 4, comment: 'Prescription got to the pharmacy the same day, which never happens with my usual clinic. Wish the video had been a touch clearer but that is probably my data.' },
   { doctor: 'emeka.nwachukwu@telemedicine.com', name: 'Aisha Adeyemi', email: 'aisha.adeyemi2@mail.com', rating: 5, comment: 'My eczema has been under control for two months now. He adjusted the plan after a week when it wasnt working — more than my old derm did in a year.' },
-  { doctor: 'chiamaka.osei@telemedicine.com', name: 'Funmi Falana', email: 'funmi.falana@mail.com', rating: 5, comment: '2am, screaming toddler, ear infection guess. Dr. Osei was calm, kind, and had us in front of a pharmacist before sunrise. I almost teared up.' },
-  { doctor: 'chiamaka.osei@telemedicine.com', name: 'Ibrahim Musa', email: 'ibrahim.musa@mail.com', rating: 4, comment: 'She spotted something my pediatrician had missed for months and referred us the same day. Only complaint: hard to get a same-week slot, she is popular.' },
-  { doctor: 'chiamaka.osei@telemedicine.com', name: 'Chinyere Okonkwo', email: 'chinyere.okonkwo@mail.com', rating: 5, comment: 'Great with my daughter who is terrified of doctors. By the end she was showing Dr. Osei her stuffed dinosaur. That is a win in my book.' },
+  { doctor: 'chiamaka.nwosu@telemedicine.com', name: 'Funmi Falana', email: 'funmi.falana@mail.com', rating: 5, comment: '2am, screaming toddler, ear infection guess. Dr. Nwosu was calm, kind, and had us in front of a pharmacist before sunrise. I almost teared up.' },
+  { doctor: 'chiamaka.nwosu@telemedicine.com', name: 'Ibrahim Musa', email: 'ibrahim.musa@mail.com', rating: 4, comment: 'She spotted something my pediatrician had missed for months and referred us the same day. Only complaint: hard to get a same-week slot, she is popular.' },
+  { doctor: 'chiamaka.nwosu@telemedicine.com', name: 'Chinyere Okonkwo', email: 'chinyere.okonkwo@mail.com', rating: 5, comment: 'Great with my daughter who is terrified of doctors. By the end she was showing Dr. Nwosu her stuffed dinosaur. That is a win in my book.' },
   { doctor: 'abubakar.sani@telemedicine.com', name: 'Halima Bello', email: 'halima.bello@mail.com', rating: 4, comment: 'Straightforward malaria consult, quick prescription when the test came back positive. The follow-up message checking on me two days later was a nice touch.' },
   { doctor: 'abubakar.sani@telemedicine.com', name: 'Olamide Johnson', email: 'olamide.johnson@mail.com', rating: 5, comment: 'Did my annual physical over video and handled my HMO referral without me having to chase anyone. Unheard of.' },
   { doctor: 'abubakar.sani@telemedicine.com', name: 'Zainab Garba', email: 'zainab.garba@mail.com', rating: 5, comment: 'Took my allergies seriously when every clinic kept saying it was just a cold. Referred me to a specialist who finally found the trigger.' },
@@ -290,11 +290,18 @@ const run = async () => {
         });
         await Availability.insertMany(slotTemplate(profile._id));
         console.log(`Added ${d.name} (${d.specialization})`);
-      } else if (!profile.hospital) {
+      } else {
+        // Refresh existing records every run so old demo data self-corrects
+        // to the current Nigerian names + Lagos addresses.
+        await User.updateOne({ _id: user._id }, { $set: { name: d.name } });
         profile.hospital = d.hospital;
-        profile.address = { city: d.city, state: d.state, country: 'Nigeria' };
+        profile.address = { city: 'Lagos', state: 'Lagos', country: 'Nigeria' };
+        profile.languages = d.languages;
+        profile.consultationFee = d.fee;
+        profile.specialization = d.specialization;
+        profile.bio = d.bio;
         await profile.save();
-        console.log(`Updated ${d.name} with hospital info`);
+        console.log(`Refreshed ${d.name} → Lagos`);
       }
       doctorProfiles[d.email] = profile;
     }
