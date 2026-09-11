@@ -63,10 +63,10 @@ const Footer = () => {
             </p>
             <div className="mt-6 space-y-2.5 text-sm text-slate-400">
               <p className="flex items-center gap-2">
-                <MapPin size={15} className="text-brand-400" /> 300 W 6th St, Suite 210, Austin, TX 78701
+                <MapPin size={15} className="text-brand-400" /> 3 Boyle Street, Ogba, Lagos 100261, Nigeria
               </p>
               <p className="flex items-center gap-2">
-                <Phone size={15} className="text-brand-400" /> +1 (512) 555-0170
+                <Phone size={15} className="text-brand-400" /> +234 1 555 0170
               </p>
               <p className="flex items-center gap-2">
                 <Mail size={15} className="text-brand-400" /> support@telemedicine.com

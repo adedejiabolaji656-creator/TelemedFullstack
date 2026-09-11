@@ -100,7 +100,7 @@ const steps = [
 const testimonials = [
   {
     name: 'Amara Johnson',
-    role: 'Patient · Austin, TX',
+    role: 'Patient · Lagos, Nigeria',
     initials: 'AJ',
     color: 'from-brand-500 to-accent-500',
     text: 'I booked a dermatology consult during my lunch break and had a prescription by dinner. This is how healthcare should work.',

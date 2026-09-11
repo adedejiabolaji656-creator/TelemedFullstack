@@ -207,7 +207,7 @@ const Register = () => {
                   type="tel"
                   name="phone"
                   className="input pl-10"
-                  placeholder="(512) 555-0123"
+                  placeholder="+234 801 234 5678"
                   value={form.phone}
                   onChange={handleChange}
                 />
