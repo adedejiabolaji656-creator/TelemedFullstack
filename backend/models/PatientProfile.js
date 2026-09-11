@@ -19,6 +19,7 @@ const patientProfileSchema = new mongoose.Schema(
     },
     allergies: [String],
     medicalConditions: [String],
+    currentMedications: [String],
     address: {
       street: String,
       city: String,

@@ -5,7 +5,7 @@ import axios from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Send, ChevronLeft, MessageSquare } from 'lucide-react';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001';
 
 const Chat = () => {
   const { roomId } = useParams();

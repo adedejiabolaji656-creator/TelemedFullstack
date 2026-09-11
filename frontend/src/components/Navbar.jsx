@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Logo from './Logo';
 import {
@@ -13,21 +14,30 @@ import {
   LogOut,
   Menu,
   X,
+  UserCog,
+  FlaskConical,
+  Pill,
+  ArrowRightLeft,
+  Bell,
 } from 'lucide-react';
 
 const NAV_LINKS = {
   patient: [
+    { to: '/patient', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/patient/doctors', label: 'Find Doctors', icon: Stethoscope },
     { to: '/patient/appointments', label: 'Appointments', icon: Calendar },
     { to: '/patient/records', label: 'Records', icon: FolderHeart },
-    { to: '/patient/prescriptions', label: 'Prescriptions', icon: FileText },
-    { to: '/patient/payments', label: 'Payments', icon: CreditCard },
+    { to: '/patient/labs', label: 'Labs', icon: FlaskConical },
+    { to: '/patient/pharmacy', label: 'Pharmacy', icon: Pill },
+    { to: '/patient/profile', label: 'Profile', icon: UserCog },
   ],
   doctor: [
     { to: '/doctor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/doctor/appointments', label: 'Appointments', icon: Calendar },
+    { to: '/doctor/labs', label: 'Labs', icon: FlaskConical },
+    { to: '/doctor/pharmacy', label: 'Pharmacy', icon: Pill },
+    { to: '/doctor/referrals', label: 'Referrals', icon: ArrowRightLeft },
     { to: '/doctor/availability', label: 'Availability', icon: Clock },
-    { to: '/doctor/prescriptions', label: 'Prescriptions', icon: FileText },
     { to: '/doctor/profile', label: 'Profile', icon: Stethoscope },
   ],
   admin: [
@@ -62,6 +72,45 @@ const Avatar = ({ user }) => {
   );
 };
 
+const NotificationBell = () => {
+  const { user } = useAuth();
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    const fetchCount = async () => {
+      try {
+        const res = await axios.get('/api/notifications');
+        if (active) setUnread(res.data.unreadCount || 0);
+      } catch (error) {
+        /* ignore */
+      }
+    };
+    fetchCount();
+    const timer = setInterval(fetchCount, 30000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [user?._id]);
+
+  return (
+    <Link
+      to="/notifications"
+      title="Notifications"
+      className="relative flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+    >
+      <Bell size={18} />
+      {unread > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+          {unread > 9 ? '9+' : unread}
+        </span>
+      )}
+    </Link>
+  );
+};
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -80,31 +129,36 @@ const Navbar = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Logo to="/" size={34} wordmarkClassName="text-lg" />
-          <div className="hidden items-center gap-1 md:flex">
-            {links.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-brand-50 text-brand-700 ring-1 ring-brand-100'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                  }`
-                }
-              >
-                <link.icon size={15} />
-                {link.label}
-              </NavLink>
-            ))}
-          </div>
 
-          <div className="hidden items-center gap-3 md:flex">
+          {user && (
+            <div className="hidden items-center gap-1 lg:flex">
+              {links.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.to === '/patient' || link.to === '/doctor' || link.to === '/admin' || link.to === '/doctor/dashboard' || link.to === '/admin/dashboard'}
+                  className={({ isActive }) =>
+                    `flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-brand-50 text-brand-700 ring-1 ring-brand-100'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`
+                  }
+                >
+                  <link.icon size={15} />
+                  <span className="whitespace-nowrap">{link.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-3">
             {user ? (
               <>
-                <div className="flex items-center gap-2.5 rounded-full bg-slate-50 py-1 pl-1 pr-3.5 ring-1 ring-slate-200">
+                <NotificationBell />
+                <div className="hidden items-center gap-2.5 rounded-full bg-slate-50 py-1 pl-1 pr-3.5 ring-1 ring-slate-200">
                   <Avatar user={user} />
-                  <span className="text-sm leading-tight">
+                  <span className="hidden text-sm leading-tight md:block">
                     <span className="block font-semibold text-slate-800">{user.name}</span>
                     <span className="block text-[11px] font-medium capitalize text-brand-600">
                       {user.role}
@@ -114,7 +168,7 @@ const Navbar = () => {
                 <button
                   onClick={handleLogout}
                   title="Log out"
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                  className="hidden h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 md:flex"
                 >
                   <LogOut size={17} />
                 </button>
@@ -132,16 +186,16 @@ const Navbar = () => {
                 </Link>
               </>
             )}
-          </div>
 
-          {/* Mobile toggle */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+            {/* Mobile toggle */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile menu */}
@@ -171,6 +225,16 @@ const Navbar = () => {
                 {link.label}
               </NavLink>
             ))}
+            {user && (
+              <NavLink
+                to="/notifications"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100"
+              >
+                <Bell size={16} />
+                Notifications
+              </NavLink>
+            )}
             {user ? (
               <button
                 onClick={handleLogout}

@@ -105,6 +105,77 @@ exports.getPayments = async (req, res) => {
   }
 };
 
+// @desc    Demo payment gateway (Naira). Mirrors a Paystack/Flutterwave
+//          checkout. In production, replace with an Initialize endpoint +
+//          webhook that verifies the reference before confirming.
+// @route   POST /api/payments/mock-pay
+// @access  Private (Patient)
+exports.mockPay = async (req, res) => {
+  try {
+    const { appointmentId, method } = req.body;
+
+    const appointment = await Appointment.findById(appointmentId).populate('doctor');
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Appointment not found',
+      });
+    }
+
+    const patient = await PatientProfile.findOne({ user: req.user.id });
+    if (!patient || appointment.patient.toString() !== patient._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You cannot pay for this appointment',
+      });
+    }
+
+    let payment = await Payment.findOne({ appointment: appointment._id });
+    if (!payment) {
+      payment = await Payment.create({
+        appointment: appointment._id,
+        patient: patient._id,
+        doctor: appointment.doctor._id,
+        amount: appointment.doctor.consultationFee || 0,
+        currency: 'ngn',
+        method: 'mock',
+        status: 'pending',
+      });
+    }
+
+    if (payment.status === 'completed') {
+      return res
+        .status(200)
+        .json({ success: true, message: 'Already paid', payment });
+    }
+
+    payment.status = 'completed';
+    payment.method = ['card', 'bank_transfer', 'ussd', 'qr', 'wallet'].includes(method)
+      ? method
+      : 'mock';
+    payment.reference = `PSK-${Date.now().toString(36).toUpperCase()}`;
+    payment.paidAt = new Date();
+    await payment.save();
+
+    await Appointment.findByIdAndUpdate(appointment._id, { status: 'confirmed' });
+
+    const doctor = await DoctorProfile.findById(payment.doctor).populate('user', 'name');
+    if (doctor) {
+      await Notification.create({
+        user: doctor.user,
+        title: 'Payment Received',
+        message: `Payment of ₦${payment.amount.toLocaleString()} received for your consultation`,
+        type: 'payment',
+        link: `/doctor/appointments`,
+      });
+    }
+
+    res.status(200).json({ success: true, payment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Stripe webhook handler
 // @route   POST /api/payments/webhook
 // @access  Public (Stripe)
@@ -137,7 +208,7 @@ exports.handleWebhook = async (req, res) => {
       await Notification.create({
         user: doctor.user,
         title: 'Payment Received',
-        message: `Payment of $${payment.amount} received for your consultation`,
+        message: `Payment of ₦${payment.amount.toLocaleString()} received for your consultation`,
         type: 'payment',
         link: `/doctor/appointments`,
       });

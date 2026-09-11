@@ -25,14 +25,14 @@ const seed = async () => {
       console.log('Admin user already exists');
     }
 
-    // Demo doctor
-    let doctorUser = await User.findOne({ email: 'sarah.miller@telemedicine.com' });
+    // Demo doctor (Nigerian context — LUTH, Lagos)
+    let doctorUser = await User.findOne({ email: 'sarah.adeyemi@telemedicine.com' });
     if (!doctorUser) {
       doctorUser = await User.create({
-        name: 'Dr. Sarah Miller',
-        email: 'sarah.miller@telemedicine.com',
+        name: 'Dr. Sarah Adeyemi',
+        email: 'sarah.adeyemi@telemedicine.com',
         password: 'doctor123',
-        phone: '512-555-0101',
+        phone: '+234 803 555 0101',
         role: 'doctor',
         emailVerified: true,
       });
@@ -40,17 +40,19 @@ const seed = async () => {
       const profile = await DoctorProfile.create({
         user: doctorUser._id,
         specialization: 'Cardiology',
-        licenseNumber: 'MD-LIC-1001',
-        yearsExperience: 12,
-        bio: 'Board-certified cardiologist with over a decade of experience in preventive and interventional cardiology.',
-        consultationFee: 80,
+        licenseNumber: 'MDCN-R-45821',
+        yearsExperience: 14,
+        bio: 'Consultant cardiologist at Lagos University Teaching Hospital (LUTH). Focused on preventive care, hypertension and heart-rhythm issues. I keep explanations simple so you actually understand what is going on with your heart.',
+        consultationFee: 20000,
+        hospital: 'Lagos University Teaching Hospital (LUTH), Idi-Araba',
         verificationStatus: 'verified',
         verifiedAt: new Date(),
         isAvailable: true,
-        languages: ['English', 'Spanish'],
+        languages: ['English', 'Yoruba'],
+        address: { city: 'Lagos', state: 'Lagos', country: 'Nigeria' },
         education: [
-          { degree: 'MD', institution: 'Johns Hopkins University', year: 2010 },
-          { degree: 'Residency', institution: 'Cleveland Clinic', year: 2013 },
+          { degree: 'MBBS', institution: 'University of Lagos (UNILAG)', year: 2008 },
+          { degree: 'FWACP (Cardiology)', institution: 'West African College of Physicians', year: 2015 },
         ],
       });
 
@@ -71,14 +73,14 @@ const seed = async () => {
       console.log('Demo doctor already exists');
     }
 
-    // Demo patient
-    let patientUser = await User.findOne({ email: 'alex.morgan@telemedicine.com' });
+    // Demo patient (Nigerian)
+    let patientUser = await User.findOne({ email: 'emeka.okafor@telemedicine.com' });
     if (!patientUser) {
       patientUser = await User.create({
-        name: 'Alex Morgan',
-        email: 'alex.morgan@telemedicine.com',
+        name: 'Emeka Okafor',
+        email: 'emeka.okafor@telemedicine.com',
         password: 'patient123',
-        phone: '512-555-0177',
+        phone: '+234 803 555 0177',
         role: 'patient',
         emailVerified: true,
       });
@@ -94,9 +96,9 @@ const seed = async () => {
     }
 
     console.log('\nSeed complete. Demo accounts:');
-    console.log('  Admin:   admin@telemedicine.com     / admin123');
-    console.log('  Doctor:  sarah.miller@telemedicine.com / doctor123');
-    console.log('  Patient: alex.morgan@telemedicine.com  / patient123');
+    console.log('  Admin:   admin@telemedicine.com        / admin123');
+    console.log('  Doctor:  sarah.adeyemi@telemedicine.com / doctor123');
+    console.log('  Patient: emeka.okafor@telemedicine.com  / patient123');
     process.exit(0);
   } catch (error) {
     console.error('Seed failed:', error.message);

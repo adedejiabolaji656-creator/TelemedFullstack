@@ -20,6 +20,7 @@ import { format } from 'date-fns';
 import { Spinner } from '../components/Spinner';
 import StatusBadge from '../components/StatusBadge';
 import { Avatar } from '../components/PageHeader';
+import { naira } from '../utils/format';
 
 const DetailRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-center gap-3">
@@ -289,7 +290,7 @@ const AppointmentDetail = () => {
                 <div>
                   <p className="text-xs text-slate-400">Payment</p>
                   <p className="font-display text-lg font-extrabold text-slate-900">
-                    ${appointment.payment.amount}
+                    {naira(appointment.payment.amount)}
                   </p>
                 </div>
               </div>

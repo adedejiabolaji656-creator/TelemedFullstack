@@ -26,7 +26,7 @@ cp .env.example .env
 
 Edit `.env` with your credentials:
 ```env
-PORT=5000
+PORT=5001
 MONGODB_URI=mongodb://localhost:27017/telemedicine
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRE=30d
@@ -35,6 +35,7 @@ CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 
+# Optional — the demo flow uses the built-in mock Naira gateway
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
@@ -48,8 +49,8 @@ mongod
 
 Run the backend:
 ```bash
-npm run dev
-# Server runs on http://localhost:5000
+node --watch server.js
+# Server runs on http://localhost:5001
 ```
 
 ### 3. Frontend Setup (new terminal)
@@ -58,22 +59,20 @@ cd frontend
 npm install
 ```
 
-Create `.env.local` file:
-```bash
-echo "VITE_STRIPE_PUBLISHABLE_KEY=pk_test_..." > .env.local
-```
-
 Run the frontend:
 ```bash
 npm run dev
 # App runs on http://localhost:5173
 ```
 
-### 4. Stripe Webhook (new terminal, for local testing)
+### 4. Optional — Stripe Webhook (only if re-enabling real Stripe payments)
 ```bash
 stripe login
-stripe listen --forward-to localhost:5000/api/payments/webhook
+stripe listen --forward-to localhost:5001/api/payments/webhook
 ```
+
+> The demo booking flow uses the built-in mock Naira gateway (`POST /api/payments/mock-pay`)
+> so no Stripe account or webhook is required to try the full patient → doctor journey.
 
 ---
 
@@ -144,7 +143,7 @@ telemedicine-fullstack/
 ---
 
 ## Default Ports
-- Backend: `http://localhost:5000`
+- Backend: `http://localhost:5001`
 - Frontend: `http://localhost:5173`
 - MongoDB: `mongodb://localhost:27017`
 

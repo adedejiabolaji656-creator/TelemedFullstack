@@ -10,11 +10,18 @@ const {
   deleteAvailability,
   uploadDocuments,
   getMyProfile,
+  getAppointmentPatient,
 } = require('../controllers/doctorController');
 
 router.get('/', getDoctors);
 router.get('/specializations', getSpecializations);
 router.get('/me', protect, authorize('doctor'), getMyProfile);
+router.get(
+  '/appointments/:appointmentId/patient',
+  protect,
+  authorize('doctor'),
+  getAppointmentPatient
+);
 router.get('/:id/availability', getAvailability);
 router.get('/:id', getDoctor);
 router.post('/availability', protect, authorize('doctor'), addAvailability);

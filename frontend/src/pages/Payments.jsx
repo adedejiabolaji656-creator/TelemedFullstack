@@ -6,7 +6,7 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  DollarSign,
+  Banknote,
   Download,
   BadgeCheck,
 } from 'lucide-react';
@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import PageHeader, { Avatar } from '../components/PageHeader';
 import { Spinner } from '../components/Spinner';
 import StatusBadge from '../components/StatusBadge';
+import { naira } from '../utils/format';
 
 const Payments = () => {
   const [payments, setPayments] = useState([]);
@@ -41,7 +42,7 @@ const Payments = () => {
       case 'failed':
         return <XCircle size={16} className="text-red-500" />;
       case 'refunded':
-        return <DollarSign size={16} className="text-orange-500" />;
+        return <Banknote size={16} className="text-orange-500" />;
       default:
         return <Clock size={16} className="text-amber-500" />;
     }
@@ -84,9 +85,9 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-cyan-100">Total paid this period</p>
-                  <p className="mt-1 font-display text-3xl font-extrabold">${totalPaid.toFixed(2)}</p>
+                  <p className="mt-1 font-display text-3xl font-extrabold">{naira(totalPaid)}</p>
                 </div>
-                <DollarSign size={34} className="opacity-40" />
+                <Banknote size={34} className="opacity-40" />
               </div>
             </div>
           )}
@@ -131,7 +132,7 @@ const Payments = () => {
                   <div className="flex items-center gap-4 sm:shrink-0">
                     <div className="text-left sm:text-right">
                       <p className="font-display text-xl font-extrabold text-slate-900">
-                        ${payment.amount}
+                        {naira(payment.amount)}
                       </p>
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                         {payment.currency} · {payment.method || 'card'}

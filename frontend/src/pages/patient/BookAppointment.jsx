@@ -10,49 +10,14 @@ import {
   ChevronLeft,
   Stethoscope,
   ShieldCheck,
+  Smartphone,
+  Landmark,
+  Zap,
+  Loader2,
 } from 'lucide-react';
 import { format, addDays, startOfWeek } from 'date-fns';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Spinner } from '../../components/Spinner';
-
-const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-  : null;
-
-const CheckoutForm = ({ clientSecret, onSuccess }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-
-    setLoading(true);
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: window.location.origin },
-      redirect: 'if_required',
-    });
-
-    if (error) {
-      alert(error.message);
-    } else if (paymentIntent.status === 'succeeded') {
-      onSuccess();
-    }
-    setLoading(false);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <PaymentElement />
-      <button type="submit" disabled={!stripe || loading} className="btn-primary w-full py-3">
-        {loading ? 'Processing payment...' : 'Pay & Confirm'}
-      </button>
-    </form>
-  );
-};
+import { naira } from '../../utils/format';
 
 const Stepper = ({ step }) => (
   <div className="mb-6 flex items-center gap-2">
@@ -87,6 +52,12 @@ const Stepper = ({ step }) => (
   </div>
 );
 
+const PAYMENT_METHODS = [
+  { method: 'card', label: 'Card', desc: 'Verve, Visa, Mastercard (Paystack)', icon: CreditCard },
+  { method: 'bank_transfer', label: 'Bank Transfer', desc: 'Providus / GTCo bank', icon: Landmark },
+  { method: 'ussd', label: 'USSD', desc: '*737# / *966# style payment', icon: Smartphone },
+];
+
 const BookAppointment = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
@@ -96,10 +67,11 @@ const BookAppointment = () => {
   const [selectedDate, setSelectedDate] = useState('');
   const [appointmentType, setAppointmentType] = useState('video');
   const [symptoms, setSymptoms] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
+  const [appointmentId, setAppointmentId] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('card');
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [booking, setBooking] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     fetchDoctorAndSlots();
@@ -122,7 +94,7 @@ const BookAppointment = () => {
 
   const handleBook = async () => {
     if (!selectedSlot) return;
-    setBooking(true);
+    setProcessing(true);
 
     try {
       const res = await axios.post('/api/appointments', {
@@ -134,22 +106,29 @@ const BookAppointment = () => {
         symptoms,
       });
 
-      const paymentRes = await axios.post('/api/payments/create-intent', {
-        appointmentId: res.data.appointment._id,
-      });
-
-      setClientSecret(paymentRes.data.clientSecret);
+      setAppointmentId(res.data.appointment._id);
       setStep(2);
     } catch (error) {
       alert(error.response?.data?.message || 'Booking failed');
     } finally {
-      setBooking(false);
+      setProcessing(false);
     }
   };
 
-  const handlePaymentSuccess = () => {
-    alert('Appointment booked successfully!');
-    navigate('/patient/appointments');
+  const handlePay = async () => {
+    setProcessing(true);
+    try {
+      await axios.post('/api/payments/mock-pay', {
+        appointmentId,
+        method: paymentMethod,
+      });
+      alert('Payment successful! Appointment confirmed.');
+      navigate('/patient/appointments');
+    } catch (error) {
+      alert(error.response?.data?.message || 'Payment failed');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   if (loading) {
@@ -184,7 +163,8 @@ const BookAppointment = () => {
               </p>
               <p className="text-sm font-medium text-teal-600">{doctor?.specialization}</p>
               <p className="mt-0.5 text-xs text-slate-400">
-                ${doctor?.consultationFee} per visit · {doctor?.rating || 'New'} rating
+                {doctor?.hospital ? `${doctor.hospital} · ` : ''}
+                {naira(doctor?.consultationFee)} per visit · {doctor?.rating || 'New'} rating
               </p>
             </div>
           </div>
@@ -317,16 +297,18 @@ const BookAppointment = () => {
             <div>
               <p className="text-sm text-slate-500">Consultation fee</p>
               <p className="font-display text-2xl font-extrabold text-slate-900">
-                ${doctor?.consultationFee}
+                {naira(doctor?.consultationFee)}
               </p>
             </div>
             <button
               onClick={handleBook}
-              disabled={!selectedSlot || booking}
+              disabled={!selectedSlot || processing}
               className="btn-primary px-8 py-3"
             >
-              {booking ? (
-                'Processing...'
+              {processing ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin" /> Booking...
+                </span>
               ) : (
                 <>
                   Continue to payment
@@ -343,22 +325,69 @@ const BookAppointment = () => {
             Complete payment
           </h3>
           <p className="mb-5 text-sm text-slate-500">
-            Pay ${doctor?.consultationFee} securely to confirm your video visit with{' '}
+            Pay <span className="font-semibold text-slate-800">{naira(doctor?.consultationFee)}</span>{' '}
+            to confirm your visit with{' '}
             <span className="font-semibold text-slate-700">Dr. {doctor?.user?.name}</span> on{' '}
             {selectedDate
               ? format(new Date(selectedDate), 'EEEE, MMM d')
               : 'your chosen date'}{' '}
             at {selectedSlot?.startTime}.
           </p>
-          {clientSecret ? (
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <CheckoutForm clientSecret={clientSecret} onSuccess={handlePaymentSuccess} />
-            </Elements>
-          ) : (
-            <p className="text-sm text-amber-600">
-              Payment wasn't initialized. Please go back and try again.
-            </p>
-          )}
+
+          <div className="space-y-3">
+            {PAYMENT_METHODS.map((opt) => (
+              <label
+                key={opt.method}
+                className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-4 transition-all duration-200 ${
+                  paymentMethod === opt.method
+                    ? 'border-teal-500 bg-teal-50 shadow-glow'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="payment-method"
+                  value={opt.method}
+                  checked={paymentMethod === opt.method}
+                  onChange={() => setPaymentMethod(opt.method)}
+                  className="sr-only"
+                />
+                <opt.icon
+                  size={22}
+                  className={paymentMethod === opt.method ? 'text-teal-600' : 'text-slate-400'}
+                />
+                <span className="flex-1">
+                  <span className="block text-sm font-bold text-slate-800">{opt.label}</span>
+                  <span className="block text-xs text-slate-400">{opt.desc}</span>
+                </span>
+                {paymentMethod === opt.method && <Zap size={16} className="text-teal-500" />}
+              </label>
+            ))}
+          </div>
+
+          <div className="mt-5 flex items-center justify-between gap-4 rounded-2xl bg-slate-50 p-4">
+            <div>
+              <p className="text-xs text-slate-400">Amount due</p>
+              <p className="font-display text-xl font-extrabold text-slate-900">
+                {naira(doctor?.consultationFee)}
+              </p>
+            </div>
+            <button onClick={handlePay} disabled={processing} className="btn-primary px-8 py-3">
+              {processing ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={16} className="animate-spin" /> Processing...
+                </span>
+              ) : (
+                'Pay Now'
+              )}
+            </button>
+          </div>
+
+          <p className="mt-4 flex items-center gap-1.5 text-xs text-slate-400">
+            <ShieldCheck size={13} className="text-mint-500" />
+            Demo checkout powered by the built-in gateway. Swap-in Paystack / Flutterwave keys in
+            production.
+          </p>
         </div>
       )}
     </div>

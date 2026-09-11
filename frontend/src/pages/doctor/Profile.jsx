@@ -13,6 +13,8 @@ const DoctorProfileEdit = () => {
     yearsExperience: '',
     bio: '',
     consultationFee: '',
+    hospital: '',
+    gender: '',
     languages: '',
     education: [{ degree: '', institution: '', year: '' }],
   });
@@ -28,6 +30,8 @@ const DoctorProfileEdit = () => {
         yearsExperience: profile.yearsExperience ?? '',
         bio: profile.bio || '',
         consultationFee: profile.consultationFee ?? '',
+        hospital: profile.hospital || '',
+        gender: profile.gender || '',
         languages: (profile.languages || []).join(', '),
         education:
           profile.education && profile.education.length > 0
@@ -71,6 +75,8 @@ const DoctorProfileEdit = () => {
         yearsExperience: Number(form.yearsExperience) || 0,
         bio: form.bio,
         consultationFee: Number(form.consultationFee) || 0,
+        hospital: form.hospital,
+        gender: form.gender,
         languages: form.languages.split(',').map((l) => l.trim()).filter(Boolean),
         education: form.education
           .filter((edu) => edu.degree || edu.institution)
@@ -151,7 +157,7 @@ const DoctorProfileEdit = () => {
               />
             </div>
             <div>
-              <label className="label">Consultation Fee ($)</label>
+              <label className="label">Consultation Fee (₦)</label>
               <input
                 type="number"
                 name="consultationFee"
@@ -161,6 +167,30 @@ const DoctorProfileEdit = () => {
                 value={form.consultationFee}
                 onChange={handleChange}
               />
+            </div>
+            <div>
+              <label className="label">Hospital / Clinic</label>
+              <input
+                type="text"
+                name="hospital"
+                className="input"
+                placeholder="e.g. LUTH, Idi-Araba"
+                value={form.hospital}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label className="label">Gender</label>
+              <select
+                name="gender"
+                className="input"
+                value={form.gender}
+                onChange={handleChange}
+              >
+                <option value="">Prefer not to say</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
             </div>
             <div className="sm:col-span-2">
               <label className="label">

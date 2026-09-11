@@ -5,7 +5,7 @@ import {
   Users,
   Stethoscope,
   Calendar,
-  DollarSign,
+  Banknote,
   Clock,
   UserPlus,
   ShieldAlert,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import { Spinner } from '../../components/Spinner';
+import { naira } from '../../utils/format';
 
 const StatCard = ({ label, value, icon: Icon, tint, sub }) => (
   <div className="card relative overflow-hidden">
@@ -89,11 +90,11 @@ const AdminDashboard = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">
-              <DollarSign size={22} />
+              <Banknote size={22} />
             </span>
             <div>
               <p className="text-sm font-medium text-cyan-100">Total platform revenue</p>
-              <p className="font-display text-3xl font-extrabold">${stats.revenue.toFixed(2)}</p>
+              <p className="font-display text-3xl font-extrabold">{naira(stats.revenue)}</p>
             </div>
           </div>
           <Link

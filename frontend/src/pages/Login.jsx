@@ -163,8 +163,8 @@ const Login = () => {
             <p className="mb-1 flex items-center justify-center gap-1 font-semibold text-slate-600">
               <BadgeCheck size={13} className="text-brand-500" /> Guest access
             </p>
-            <p>Patient · alex.morgan@telemedicine.com</p>
-            <p>Doctor · sarah.miller@telemedicine.com</p>
+            <p>Patient · emeka.okafor@telemedicine.com</p>
+            <p>Doctor · sarah.adeyemi@telemedicine.com</p>
             <p>Admin · admin@telemedicine.com</p>
           </div>
 

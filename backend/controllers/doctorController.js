@@ -1,5 +1,7 @@
 const DoctorProfile = require('../models/DoctorProfile');
 const User = require('../models/User');
+const Appointment = require('../models/Appointment');
+const PatientProfile = require('../models/PatientProfile');
 const Availability = require('../models/Availability');
 const Review = require('../models/Review');
 const cloudinary = require('../config/cloudinary');
@@ -9,7 +11,17 @@ const cloudinary = require('../config/cloudinary');
 // @access  Public
 exports.getDoctors = async (req, res) => {
   try {
-    const { specialization, search, page = 1, limit = 10 } = req.query;
+    const {
+      specialization,
+      search,
+      city,
+      maxFee,
+      minRating,
+      language,
+      gender,
+      page = 1,
+      limit = 12,
+    } = req.query;
 
     const query = {
       verificationStatus: 'verified',
@@ -20,6 +32,26 @@ exports.getDoctors = async (req, res) => {
       query.specialization = { $regex: specialization, $options: 'i' };
     }
 
+    if (city) {
+      query['address.city'] = { $regex: city, $options: 'i' };
+    }
+
+    if (maxFee && !isNaN(maxFee)) {
+      query.consultationFee = { $lte: Number(maxFee) };
+    }
+
+    if (minRating && !isNaN(minRating)) {
+      query.rating = { $gte: Number(minRating) };
+    }
+
+    if (language) {
+      query.languages = { $in: [language] };
+    }
+
+    if (gender) {
+      query.gender = gender;
+    }
+
     if (search) {
       const users = await User.find({
         name: { $regex: search, $options: 'i' },
@@ -28,6 +60,7 @@ exports.getDoctors = async (req, res) => {
       query.$or = [
         { user: { $in: users.map((u) => u._id) } },
         { specialization: { $regex: search, $options: 'i' } },
+        { hospital: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -341,5 +374,34 @@ exports.getMyProfile = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+// @desc    Get patient snapshot for the doctor's appointment (health profile)
+// @route   GET /api/doctors/appointments/:appointmentId/patient
+// @access  Private (Doctor)
+exports.getAppointmentPatient = async (req, res) => {
+  try {
+    const doctor = await DoctorProfile.findOne({ user: req.user.id });
+    if (!doctor) {
+      return res.status(404).json({ success: false, message: 'Doctor profile not found' });
+    }
+
+    const appointment = await Appointment.findById(req.params.appointmentId);
+    if (!appointment) {
+      return res.status(404).json({ success: false, message: 'Appointment not found' });
+    }
+    if (appointment.doctor.toString() !== doctor._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    const profile = await PatientProfile.findById(appointment.patient).populate(
+      'user',
+      'name email phone avatar'
+    );
+
+    res.status(200).json({ success: true, profile });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -5,16 +5,17 @@ import {
   Star,
   MapPin,
   Clock,
-  DollarSign,
   Award,
   Calendar,
   BadgeCheck,
   GraduationCap,
+  Building2,
   Mail,
   Phone,
   ArrowLeft,
 } from 'lucide-react';
 import { Spinner } from '../../components/Spinner';
+import { naira } from '../../utils/format';
 
 const getAvatarInitials = (name) =>
   (name || '?')
@@ -100,9 +101,15 @@ const DoctorProfilePage = () => {
                     {doctor.yearsExperience} yrs experience
                   </span>
                   <span className="flex items-center gap-1">
-                    <MapPin size={13} className="text-slate-400" />
-                    {doctor.location || 'Telehealth'}
+                    <Building2 size={13} className="text-slate-400" />
+                    {doctor.hospital || 'Telehealth'}
                   </span>
+                  {doctor.address?.state && (
+                    <span className="flex items-center gap-1">
+                      <MapPin size={13} className="text-slate-400" />
+                      {doctor.address.city}, {doctor.address.state}
+                    </span>
+                  )}
                   <span className="flex items-center gap-1">
                     <Star size={13} className="fill-amber-400 text-amber-400" />
                     {doctor.rating || 'New'} ({doctor.reviewCount || 0} reviews)
@@ -209,7 +216,7 @@ const DoctorProfilePage = () => {
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <p className="font-display text-2xl font-extrabold text-slate-900">
-                  ${doctor.consultationFee}
+                  {naira(doctor.consultationFee)}
                 </p>
                 <p className="text-xs text-slate-400">per video visit</p>
               </div>

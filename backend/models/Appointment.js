@@ -56,6 +56,14 @@ const appointmentSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    followUpOf: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Appointment',
+    },
+    isFollowUp: {
+      type: Boolean,
+      default: false,
+    },
     cancelledBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

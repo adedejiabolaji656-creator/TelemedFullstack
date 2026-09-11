@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { DollarSign, Calendar, CreditCard, TrendingUp, Receipt } from 'lucide-react';
+import { Banknote, Calendar, CreditCard, TrendingUp, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import PageHeader, { Avatar } from '../../components/PageHeader';
 import { Spinner } from '../../components/Spinner';
 import StatusBadge from '../../components/StatusBadge';
+import { naira } from '../../utils/format';
 
 const TABS = [
   { key: 'all', label: 'All' },
@@ -75,14 +76,14 @@ const AdminPayments = () => {
       <div className="mb-8 grid gap-4 sm:grid-cols-3">
         <SummaryCard
           label="Total revenue"
-          value={`$${totalRevenue.toFixed(2)}`}
+          value={naira(totalRevenue)}
           icon={Receipt}
           tint="from-teal-500 to-cyan-600"
         />
         <SummaryCard
           label="Transactions"
           value={payments.length}
-          icon={DollarSign}
+          icon={Banknote}
           tint="from-brand-500 to-indigo-500"
         />
         <SummaryCard
@@ -158,7 +159,7 @@ const AdminPayments = () => {
                       <span className="text-sm text-slate-600">Dr. {payment.doctor?.user?.name}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="font-display font-bold text-slate-800">${payment.amount}</span>
+                      <span className="font-display font-bold text-slate-800">{naira(payment.amount)}</span>
                     </td>
                     <td className="px-5 py-4">
                       <StatusBadge status={payment.status} />

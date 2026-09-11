@@ -5,7 +5,7 @@ import {
   Calendar,
   Clock,
   AlertCircle,
-  DollarSign,
+  Banknote,
   Star,
   TrendingUp,
   Video,
@@ -20,6 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 import PageHeader, { Avatar } from '../../components/PageHeader';
 import { Spinner } from '../../components/Spinner';
 import StatusBadge from '../../components/StatusBadge';
+import { naira } from '../../utils/format';
 
 const StatCard = ({ label, value, icon: Icon, tint, sub }) => (
   <div className="card relative overflow-hidden">
@@ -137,8 +138,8 @@ const DoctorDashboard = () => {
         />
         <StatCard
           label="Earnings"
-          value={`$${stats.totalEarnings}`}
-          icon={DollarSign}
+          value={naira(stats.totalEarnings)}
+          icon={Banknote}
           tint="from-mint-500 to-emerald-600"
           sub="completed visits"
         />

@@ -12,6 +12,10 @@ const doctorProfileSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Specialization is required'],
     },
+    gender: {
+      type: String,
+      enum: ['male', 'female'],
+    },
     licenseNumber: {
       type: String,
       required: [true, 'License number is required'],
@@ -31,6 +35,9 @@ const doctorProfileSchema = new mongoose.Schema(
     bio: {
       type: String,
       maxlength: [1000, 'Bio cannot exceed 1000 characters'],
+    },
+    hospital: {
+      type: String,
     },
     consultationFee: {
       type: Number,

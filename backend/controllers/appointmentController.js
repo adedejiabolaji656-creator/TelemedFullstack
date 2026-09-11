@@ -4,6 +4,7 @@ const PatientProfile = require('../models/PatientProfile');
 const Availability = require('../models/Availability');
 const ChatRoom = require('../models/ChatRoom');
 const Payment = require('../models/Payment');
+const MedicalRecord = require('../models/MedicalRecord');
 const Notification = require('../models/Notification');
 const { v4: uuidv4 } = require('uuid');
 
@@ -387,5 +388,133 @@ exports.cancelAppointment = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+// @desc    Doctor completes a consultation (notes + diagnosis), archives a
+//          medical record and notifies the patient
+// @route   PUT /api/appointments/:id/complete
+// @access  Private (Doctor)
+exports.completeConsultation = async (req, res) => {
+  try {
+    const { notes, diagnosis } = req.body;
+
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) {
+      return res.status(404).json({ success: false, message: 'Appointment not found' });
+    }
+
+    const doctor = await DoctorProfile.findOne({ user: req.user.id });
+    if (!doctor || appointment.doctor.toString() !== doctor._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the consulting doctor can complete this appointment',
+      });
+    }
+
+    if (appointment.status === 'completed') {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Appointment is already completed' });
+    }
+
+    appointment.status = 'completed';
+    if (notes) appointment.notes = notes;
+    if (diagnosis) appointment.diagnosis = diagnosis;
+    await appointment.save();
+
+    await MedicalRecord.create({
+      patient: appointment.patient,
+      doctor: doctor._id,
+      appointment: appointment._id,
+      title: diagnosis || 'Consultation',
+      description: notes || 'Consultation notes recorded',
+      type: 'consultation',
+    });
+
+    const patientProfile = await PatientProfile.findById(appointment.patient);
+    if (patientProfile) {
+      await Notification.create({
+        user: patientProfile.user,
+        title: 'Consultation Completed',
+        message: `Dr. ${req.user.name} has completed your consultation and saved notes to your record`,
+        type: 'medical_record',
+        link: `/patient/records`,
+      });
+    }
+
+    res.status(200).json({ success: true, appointment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Doctor schedules a follow-up appointment for the same patient
+// @route   POST /api/appointments/:id/follow-up
+// @access  Private (Doctor)
+exports.scheduleFollowUp = async (req, res) => {
+  try {
+    const { scheduledDate, startTime, type, symptoms, fee } = req.body;
+
+    const previous = await Appointment.findById(req.params.id);
+    if (!previous) {
+      return res.status(404).json({ success: false, message: 'Appointment not found' });
+    }
+
+    const doctor = await DoctorProfile.findOne({ user: req.user.id });
+    if (!doctor || previous.doctor.toString() !== doctor._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the consulting doctor can schedule a follow-up',
+      });
+    }
+
+    const endTime = calcEndTime(new Date(scheduledDate), startTime);
+    const appointment = await Appointment.create({
+      patient: previous.patient,
+      doctor: doctor._id,
+      scheduledDate: new Date(scheduledDate),
+      startTime,
+      endTime,
+      type: type || previous.type || 'video',
+      symptoms: symptoms || previous.symptoms,
+      roomId: uuidv4(),
+      status: 'confirmed',
+      isFollowUp: true,
+      followUpOf: previous._id,
+    });
+
+    const patientProfile = await PatientProfile.findById(previous.patient);
+
+    await ChatRoom.create({
+      appointment: appointment._id,
+      participants: [patientProfile.user, doctor.user],
+    });
+
+    // Follow-ups are free on the platform; a Payment row documents the fee is ₦0.
+    await Payment.create({
+      appointment: appointment._id,
+      patient: previous.patient,
+      doctor: doctor._id,
+      amount: fee || 0,
+      status: 'completed',
+      method: 'wallet',
+      reference: `FUW-${Date.now().toString(36).toUpperCase()}`,
+      paidAt: new Date(),
+    });
+
+    if (patientProfile) {
+      await Notification.create({
+        user: patientProfile.user,
+        title: 'Follow-up Scheduled',
+        message: `Dr. ${req.user.name} scheduled a follow-up for ${new Date(scheduledDate).toDateString()} at ${startTime}${fee ? ' (₦' + fee + ')' : ' (free)'}`,
+        type: 'appointment',
+        link: `/patient/appointments`,
+      });
+    }
+
+    res.status(201).json({ success: true, appointment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

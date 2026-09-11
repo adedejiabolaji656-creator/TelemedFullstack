@@ -93,6 +93,9 @@ const createApp = () => {
   app.use('/api/payments', require('./routes/paymentRoutes'));
   app.use('/api/reviews', require('./routes/reviewRoutes'));
   app.use('/api/notifications', require('./routes/notificationRoutes'));
+  app.use('/api/labs', require('./routes/labRoutes'));
+  app.use('/api/pharmacy', require('./routes/pharmacyRoutes'));
+  app.use('/api/referrals', require('./routes/referralRoutes'));
   app.use('/api/admin', require('./routes/adminRoutes'));
   app.use('/api/chat', require('./routes/chatRoutes'));
 
