@@ -87,10 +87,11 @@ exports.register = async (req, res) => {
       user: fullUser,
     });
   } catch (error) {
+    console.error('Register error:', error);
     const message =
       error.name === 'ValidationError' || error.code === 11000
         ? error.message
-        : 'Registration failed. Please try again.';
+        : error.message || 'Registration failed. Please try again.';
     res.status(400).json({
       success: false,
       message,
