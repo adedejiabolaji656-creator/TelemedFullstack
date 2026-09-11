@@ -49,7 +49,7 @@ const seed = async () => {
         verifiedAt: new Date(),
         isAvailable: true,
         languages: ['English', 'Yoruba'],
-        address: { city: 'Lagos', state: 'Lagos', country: 'Nigeria' },
+        address: { street: '11 Johnson Street, Idi-Araba', city: 'Lagos', state: 'Lagos', country: 'Nigeria' },
         education: [
           { degree: 'MBBS', institution: 'University of Lagos (UNILAG)', year: 2008 },
           { degree: 'FWACP (Cardiology)', institution: 'West African College of Physicians', year: 2015 },

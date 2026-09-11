@@ -26,7 +26,8 @@ const DOCTORS = [
     yearsExperience: 14,
     fee: 20000,
     bio: 'Consultant cardiologist at Lagos University Teaching Hospital (LUTH) in Idi-Araba. Focused on preventive care, hypertension and heart-rhythm issues.',
-    hospital: 'Lagos University Teaching Hospital (LUTH), Idi-Araba',
+    hospital: 'Lagos University Teaching Hospital (LUTH)',
+    street: '11 Johnson Street, Idi-Araba',
     city: 'Lagos',
     state: 'Lagos',
     languages: ['English', 'Yoruba'],
@@ -43,7 +44,8 @@ const DOCTORS = [
     yearsExperience: 11,
     fee: 12000,
     bio: 'Consultant dermatologist with a soft spot for acne, eczema and the kind of skin problems people feel embarrassed to mention. Half my job is reassurance; the other half is a plan that fits your week.',
-    hospital: 'Lagoon Hospitals, Apapa',
+    hospital: 'Lagoon Hospitals',
+    street: '13 Marine Road, Apapa',
     city: 'Lagos',
     state: 'Lagos',
     languages: ['English', 'Igbo'],
@@ -60,9 +62,10 @@ const DOCTORS = [
     yearsExperience: 13,
     fee: 10000,
     bio: 'Consultant pediatrician and mother of two. I treat ear infections, asthma, fevers and the occasional mysterious rash. Sick children rarely follow scripts, so neither do I.',
-    hospital: 'St. Nicholas Hospital, Lagos Island',
-    city: 'Lagos',
-    state: 'Lagos',
+    hospital: 'University of Nigeria Teaching Hospital (UNTH)',
+    street: 'UNTH Road, Ituku-Ozalla',
+    city: 'Enugu',
+    state: 'Enugu',
     languages: ['English', 'Igbo'],
     education: [
       { degree: 'MBBS', institution: 'University of Port Harcourt', year: 2010 },
@@ -77,9 +80,10 @@ const DOCTORS = [
     yearsExperience: 10,
     fee: 8000,
     bio: 'Family physician for colds, malaria, typhoid, allergies and annual checkups. If you need a specialist, I will send you to someone I would send my own family to.',
-    hospital: 'Reddington Hospital, Victoria Island',
-    city: 'Lagos',
-    state: 'Lagos',
+    hospital: 'National Hospital, Abuja',
+    street: 'Central Business District, Garki',
+    city: 'Abuja',
+    state: 'FCT',
     languages: ['English', 'Hausa'],
     education: [
       { degree: 'MBBS', institution: 'Bayero University Kano', year: 2014 },
@@ -94,9 +98,10 @@ const DOCTORS = [
     yearsExperience: 17,
     fee: 25000,
     bio: 'Orthopedic surgeon who also spends a lot of time helping people avoid surgery altogether. Knee, back, shoulder — if it hurts when you move, we can probably sort it out.',
-    hospital: 'National Orthopaedic Hospital, Igbobi',
-    city: 'Lagos',
-    state: 'Lagos',
+    hospital: 'University College Hospital (UCH)',
+    street: 'Queen Elizabeth Road, Oke Offa',
+    city: 'Ibadan',
+    state: 'Oyo',
     languages: ['English', 'Yoruba'],
     education: [
       { degree: 'MBBS', institution: 'University of Ibadan', year: 2006 },
@@ -111,9 +116,10 @@ const DOCTORS = [
     yearsExperience: 12,
     fee: 30000,
     bio: 'Neurologist specializing in migraine, sleep disorders and dizziness. I spend a lot of time translating scans and jargon into language that makes sense.',
-    hospital: 'Lagos University Teaching Hospital (LUTH), Idi-Araba',
-    city: 'Lagos',
-    state: 'Lagos',
+    hospital: 'Aminu Kano Teaching Hospital (AKTH)',
+    street: 'No. 12 Zaria Road, Gyadi-Gyadi',
+    city: 'Kano',
+    state: 'Kano',
     languages: ['English', 'Yoruba'],
     education: [
       { degree: 'MBBS', institution: 'University of Ilorin', year: 2011 },
@@ -129,6 +135,7 @@ const DOCTORS = [
     fee: 15000,
     bio: 'Psychiatrist for anxiety, depression and burnout. Medication is sometimes part of it, but listening is always the first dose.',
     hospital: 'Federal Neuro-Psychiatric Hospital, Yaba',
+    street: 'Harvey Road, Yaba',
     city: 'Lagos',
     state: 'Lagos',
     languages: ['English', 'Yoruba'],
@@ -145,9 +152,10 @@ const DOCTORS = [
     yearsExperience: 9,
     fee: 15000,
     bio: 'Eye doctor for dry eyes, red eyes, floaters and blurry vision. Most eye panics turn out to be minor; I will tell you honestly when it actually matters.',
-    hospital: 'Eye Foundation Hospital, Ikeja',
-    city: 'Lagos',
-    state: 'Lagos',
+    hospital: 'University of Port Harcourt Teaching Hospital (UPTH)',
+    street: 'Rumuokuta–Eneka Road, Choba',
+    city: 'Port Harcourt',
+    state: 'Rivers',
     languages: ['English', 'Igbo'],
     education: [
       { degree: 'MBBS', institution: 'University of Nigeria, Nsukka (UNN)', year: 2014 },
@@ -286,7 +294,7 @@ const run = async () => {
           isAvailable: true,
           languages: d.languages,
           education: d.education,
-          address: { city: d.city, state: d.state, country: 'Nigeria' },
+          address: { street: d.street, city: d.city, state: d.state, country: 'Nigeria' },
         });
         await Availability.insertMany(slotTemplate(profile._id));
         console.log(`Added ${d.name} (${d.specialization})`);
@@ -295,7 +303,7 @@ const run = async () => {
         // to the current Nigerian names + Lagos addresses.
         await User.updateOne({ _id: user._id }, { $set: { name: d.name } });
         profile.hospital = d.hospital;
-        profile.address = { city: 'Lagos', state: 'Lagos', country: 'Nigeria' };
+        profile.address = { street: d.street, city: d.city, state: d.state, country: 'Nigeria' };
         profile.languages = d.languages;
         profile.consultationFee = d.fee;
         profile.specialization = d.specialization;

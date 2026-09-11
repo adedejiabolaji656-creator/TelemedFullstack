@@ -107,7 +107,7 @@ const DoctorProfilePage = () => {
                   {doctor.address?.state && (
                     <span className="flex items-center gap-1">
                       <MapPin size={13} className="text-slate-400" />
-                      {doctor.address.city}, {doctor.address.state}
+                      {doctor.address.street ? `${doctor.address.street}, ` : ''}{doctor.address.city}, {doctor.address.state}, Nigeria
                     </span>
                   )}
                   <span className="flex items-center gap-1">
